@@ -1,0 +1,91 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "All Menus"|t %}
+
+{% set selectedTab = 'menus' %}
+
+{% set tabs = {
+    menus: { label: "All Menus"|t, url: url('olivemenus') },	
+    new:    { label: "New Menu"|t, url: url('olivemenus/menu-new') }	
+} %}
+
+{% set content %}
+	
+	<p id="menu-none"{% if menus is not empty %} class="hidden"{%endif%}">{{ "No menus exist yet."|t }}</p>
+	
+	{% if menus | length %}
+	<table id="menu-list" class="data fullwidth collapsible">
+		<thead>
+			<th scope="col">{{ "Name"|t }}</th>
+			<th scope="col">{{ "Handle"|t }}</th>
+			<td class="thin"></td>
+			<td class="thin"></td>
+		</thead>
+		<tbody>
+		{% for menu in menus %}
+		<tr data-id="{{ menu.id }}" data-name="{{ menu.name|t }}">
+			<th scope="row" data-title="{{ 'Name'|t }}"><a href="{{ url('olivemenus/menu-items/' ~ menu.id) }}">{{ menu.name|t }}</a></th>
+			<td data-title="{{ 'Handle'|t }}"><code>{{ menu.handle }}</code></td>
+			<td class="thin">
+				<a class="edit icon" title="{{ 'Edit'|t }}" href="{{ url('olivemenus/menu-edit/' ~ menu.id) }}" role="button"></a>
+			</td>
+			<td class="thin">			
+				<a class="delete icon" title="{{ 'Delete'|t }}" role="button"></a>
+			</td>
+		</tr>
+		{% endfor %}
+		</tbody>
+	</table>	
+	
+	{% endif %}
+	
+	<div id="menu-new" class="buttons">
+		<a href="{{ url('olivemenus/menu-new') }}" class="btn submit add icon">{{ "New Menu"|t }}</a>
+	</div>		
+{% endset %}
+
+{% set js %}
+$(document).ready(function(){
+
+var	menuNone = $('#menu-none'),
+	menuList = $('#menu-list'),
+	menuListItems = menuList.find('tbody tr'),
+	menuListItemsCount = menuListItems.length;
+		
+	$('#menu-list .delete').each(function(){
+	
+		var menu = $(this),
+			menuParent = menu.parent().parent(),
+			menuID = menuParent.attr('data-id'),
+			menuName = menuParent.attr('data-name');
+		
+		
+		$(this).on('click',function(){		
+			if ( confirm('Are you sure you want to delete the "' + menuName + '" menu?') )
+			{
+				$.post( 'olivemenus/delete-menu', { menuID: menuID })
+					.done(function( data ) {
+						if( data == '1')
+						{
+							Craft.cp.displayNotice('Menu successfully deleted.');
+							menuParent.remove();
+							
+							var menuListItems = menuList.find('tbody tr'),
+							menuListItemsCount = menuListItems.length;						
+							
+							if ( menuListItemsCount == 0 )
+							{
+								menuList.remove();
+								menuNone.removeClass('hidden');
+							}
+							console.log(menuListItemsCount);
+						}
+						else Craft.cp.displayError('Menu was not deleted. Please try again.');
+					});			
+			}
+		});
+		
+	});
+});
+{% endset %}
+{% includeJs js %}
