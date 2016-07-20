@@ -28,6 +28,8 @@ Some things to do, and ideas for potential features:
 
 ## Changelog
 
+### 1.0.0 -- 2016.07.20
+
 * Initial release
 
 Brought to you by [Olive Studio Team](http://www.olivestudio.net)
