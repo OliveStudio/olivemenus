@@ -20,6 +20,10 @@ The Olive Menus plugin requires PHP 5.4 or later.
 
 ## Overview
 
+
+
+## Documentation
+
 Please read the complete documentation in the [Olive Menus Wiki](https://github.com/OliveStudio/olivemenus/wiki) or read the `DOCS.md` file in the repo.
 
 ## Roadmap
