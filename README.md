@@ -1,8 +1,8 @@
 # Olive Menus
 A powerful menus plugin for Craft CMS built for the need of simplicity and flexibility
 
-![Screenshot](resources/screenshots/olivemenus01.png)
-![Screenshot](resources/screenshots/olivemenus02.png)
+![Screenshot](resources/screenshots/olivemenus01.jpg)
+![Screenshot](resources/screenshots/olivemenus02.jpg)
 
 ## Installation
 
