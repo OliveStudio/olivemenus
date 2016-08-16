@@ -221,7 +221,7 @@ class OlivemenusService extends BaseApplicationComponent
         $localHTML = '';
         $localHTML .= '<li id="menu-item-' .$menu_item['id']. '" class="' .$menu_item_class. '">';
             
-            $localHTML .= '<a class="'. $menu_class. '" href="' .$menu_item_url. '"' .$data_attributes. '>' . $menu_item['name'] . '</a>';
+            $localHTML .= '<a class="'. $menu_class. '" href="' .$menu_item_url. '"' .$data_attributes. '>' . Craft::t( $menu_item['name'] ) . '</a>';
             if ( isset($menu_item['children']) )
             {
                 $localHTML .= '<ul class="sub-menu">';
