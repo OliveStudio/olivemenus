@@ -211,6 +211,7 @@ class OlivemenusService extends BaseApplicationComponent
         if ( $current_active_url != '' && $menu_item_url != '' )
         {
             $menu_item_url_filtered = preg_replace('#^https?://#', '', $menu_item_url);
+            $current_active_url = preg_replace('/\?.*/', '', $current_active_url); // Remove query string
             if ( $current_active_url == $menu_item_url_filtered )
             {
                 $menu_class .= ' active';
