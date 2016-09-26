@@ -27,7 +27,7 @@ class Olivemenus_MenuitemController extends BaseController
 				
 				foreach ( $menu_items as $element )
 				{
-					if ( isset($element['item-id']) && $element['item-id'] == $parent_id )
+                    if ( isset($element['item-id']['html']) && $element['item-id']['html'] == $parent_id )
 					{
 						$parent_id = $element['menu-item-db-id'];
 						$menu_items[$order]['parent-id'] = $parent_id;
@@ -52,8 +52,11 @@ class Olivemenus_MenuitemController extends BaseController
 
             $data_json = '';
             if ( isset($menu_item['data-json']) ) $data_json = $menu_item['data-json'];
-            
-            $menu_item_model->id = $menu_item['item-id'];
+
+            $menu_item_model->id = null;
+            if($menu_item['item-id']['db'] != null){
+                $menu_item_model->id = $menu_item['item-id']['db'];
+            }
             $menu_item_model->menu_id = $menu_id;
             $menu_item_model->parent_id = $parent_id;
             $menu_item_model->item_order = $order;

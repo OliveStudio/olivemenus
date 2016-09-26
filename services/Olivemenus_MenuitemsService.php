@@ -140,6 +140,7 @@ class Olivemenus_MenuitemsService extends BaseApplicationComponent
                     $localHTML .= '<span class="delete-menu btn small" data-id="' .$menu_item['id']. '">Delete</span>';
                 $localHTML .= '</div>';
                 $localHTML .= '<div class="item-content">';
+                $localHTML .= '<input type="hidden" name="item-id" value="' .$menu_item['id']. '" />';
                     if ( $menu_item['custom_url'] == '' ) $localHTML .= '<input type="hidden" name="item-entry-id" value="' .$menu_item['entry_id']. '" />';                
                     $localHTML .= '<div class="inner">';
                         $localHTML .= '<div class="row field">';
