@@ -261,10 +261,10 @@ $(document).ready(function(){
 				
 				if ( typeof menuItem.id !== 'undefined' )
 				{
-					
-					var menuItemID = menuItem.id,
-						menuItemParentID = (typeof menuItem.parent_id !== null ) ? menuItem.parent_id : 0,
-						menuItemElement = $('#menu-item-' + menuItemID),
+
+					var menuItemParentID = (typeof menuItem.parent_id !== null ) ? menuItem.parent_id : 0,
+						menuItemElement = $('#menu-item-' + menuItem.id),
+						menuItemID = menuItemElement.find('input[name="item-id"]'),
 						menuItemNameElement = menuItemElement.find('input[name="item-name"]'),
 						menuItemNameValue = menuItemNameElement.val(),
 						menuItemEntryIDElement = menuItemElement.find('input[name="item-entry-id"]'),
@@ -276,10 +276,19 @@ $(document).ready(function(){
                         menuItemClassParentElement = menuItemElement.find('input[name="class-parent"]'),
 						menuItemClassParentValue = menuItemClassParentElement.val(),
                         menuItemDataElement = menuItemElement.find('textarea[name="data-json"]'),
-						menuItemDataValue = menuItemDataElement.val();						
-									
+						menuItemDataValue = menuItemDataElement.val();
+
+					if(menuItemID.length == 0){
+						menuItemID = null;
+					} else {
+						menuItemID = menuItemID.val();
+					}
+
 					var menuItemData = {
-						'item-id' : menuItemID,
+						'item-id' : {
+							db:menuItemID,
+							html:menuItem.id
+						},
 						'parent-id' : menuItemParentID,
 						'name' : menuItemNameValue,
 						'entry-id' : menuItemEntryIDValue,
