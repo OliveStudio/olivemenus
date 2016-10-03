@@ -10,32 +10,33 @@
 {% set selectedTab = '' %}
 
 {% set tabs = {
-    menus: { label: "All Menus"|t, url: url('olivemenus') },	
-    new:    { label: "New Menu"|t, url: url('olivemenus/menu-new') }	
+    menus: { label: "All Menus"|t, url: url('olivemenus') },
+    new:    { label: "New Menu"|t, url: url('olivemenus/menu-new') }
 } %}
 
 {% set content %}
 	<form method="post" accept-charset="UTF-8">
-	
+
+	    <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
 		<input type="hidden" name="action" value="olivemenus/menus/editMenu">
 		<input type="hidden" name="menu-id" value="{{menu.id}}">
-		
+
 		{% set nameValidationError = '' %}
 		{% set handleValidationError = '' %}
-		
+
 		{% set nameValue = '' %}
 		{% set handleValue = '' %}
-			
+
 		{% if menu is defined %}
 			{% set nameValidationError = menu.getErrors('name') %}
 			{% set handleValidationError = menu.getErrors('handle') %}
-			
+
 			{% set nameValue = menu.name %}
 			{% set handleValue = menu.handle %}
-			
+
 		{% endif %}
-		
-		{{ 
+
+		{{
 			forms.textField({
 				label: "Name"|t,
 				id: 'name',
@@ -45,7 +46,7 @@
 				required: true,
 				value: nameValue,
 				errors: nameValidationError
-			}) 
+			})
 		}}
 
 		{{
@@ -57,16 +58,16 @@
 				value: handleValue,
 				errors: handleValidationError
 			})
-		}}		
+		}}
 
 		<div class="buttons">
 			<div class="btngroup submit first">
 				<input type="submit" class="btn submit" value="{{ 'Save'|t }}">
 				<a class="btn back-button" href="{{url('olivemenus')}}">Back</a>
 			</div>
-		</div>  
-		
-	</form>	
+		</div>
+
+	</form>
 {% endset %}
 
 {% set js %}

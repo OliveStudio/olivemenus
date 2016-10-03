@@ -6,13 +6,13 @@
 {% set selectedTab = '' %}
 
 {% set tabs = {
-    menus: { label: "All Menus"|t, url: url('olivemenus') },	
-    new:    { label: "New Menu"|t, url: url('olivemenus/menu-new') }	
+    menus: { label: "All Menus"|t, url: url('olivemenus') },
+    new:    { label: "New Menu"|t, url: url('olivemenus/menu-new') }
 } %}
 
 {% set content %}
     <div id="menu-items-sidebar">
-        {% if sections is not empty %}		
+        {% if sections is not empty %}
             <div class="os-accordion accordion">
                 <h4 class="ui-accordion-header">Singles</h4>
                 <div class="ui-accordion-content">
@@ -24,6 +24,7 @@
                             </ul>
                             <div id="singles-all" class="ui-tabs-panel">
                                 <form method="POST">
+                                    <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
                                     <div class="fields">
                                         {% for single in sections.single %}
                                             {% set local_id = single.entries.first().id %}
@@ -40,6 +41,7 @@
                             </div>
                             <div id="singles-search" class="ui-tabs-panel">
                                 <form method="POST">
+                                    <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
                                     <div class="input">
                                         <input id="singles-search-input" class="search text nicetext fullwidth" placeholder="Start typing to search..." type="text" />
                                         <ul class="search-list">
@@ -52,7 +54,7 @@
                                                     <label for="single-search-{{local_id}}">{{local_title}}</label>
                                                 </li>
                                             {% endfor %}
-                                        </ul>											
+                                        </ul>
                                     </div>
                                     <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">
                                 </form>
@@ -60,7 +62,7 @@
                         </div>
                     {% else %}
                         <p>There are no singles defined.</p>
-                    {% endif %}                         
+                    {% endif %}
                 </div>
                 <h4 class="ui-accordion-header">Channels</h4>
                 <div class="ui-accordion-content">
@@ -74,9 +76,10 @@
                                         <ul class="ui-tabs-nav">
                                             <li><a href="#{{channel.handle}}-all">View all</a></li>
                                             <li><a href="#{{channel.handle}}-search">Search</a></li>
-                                        </ul>							
+                                        </ul>
                                         <div id="{{channel.handle}}-all" class="ui-tabs-panel">
                                             <form method="POST">
+                                                <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
                                                 <div class="fields">
                                                     {% for entry in channel.entries %}
                                                         {% set local_id = entry.id %}
@@ -85,14 +88,15 @@
                                                         <div class="field checkboxfield">
                                                             <input id="channel-{{local_id}}" type="checkbox" value="{{local_id}}" name="channel-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
                                                             <label for="channel-{{local_id}}">{{local_title}}</label>
-                                                        </div>									
+                                                        </div>
                                                     {% endfor %}
                                                 </div>
-                                                <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">							
+                                                <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">
                                             </form>
                                         </div>
                                         <div id="{{channel.handle}}-search" class="ui-tabs-panel">
                                             <form method="POST">
+                                                <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
                                                 <div class="input">
                                                     <input id="{{channel.handle}}-search-input" class="search text nicetext fullwidth" placeholder="Start typing to search..." type="text" />
                                                     <ul class="search-list">
@@ -103,24 +107,24 @@
                                                             <li class="field checkboxfield">
                                                                 <input id="channel-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="channel-search-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
                                                                 <label for="channel-search-{{local_id}}">{{local_title}}</label>
-                                                            </li>									
+                                                            </li>
                                                         {% endfor %}
-                                                    </ul>													
+                                                    </ul>
                                                 </div>
-                                                <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">							
+                                                <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">
                                             </form>
-                                        </div>										
+                                        </div>
                                     </div>
                                 {% else %}
-                                    <p>There are no entries in this channel.</p>                                    
+                                    <p>There are no entries in this channel.</p>
                                 {% endif %}
                             </div>
                         {% endfor %}
-                    </div> 
+                    </div>
                     {% else %}
                         <p>There are no channels defined.</p>
-                    {% endif %}                    
-                </div>					
+                    {% endif %}
+                </div>
                 <h4 class="ui-accordion-header">Structures</h4>
                 <div class="ui-accordion-content">
                     {% if sections.structure is defined and sections.structure is not empty %}
@@ -133,9 +137,10 @@
                                             <ul class="ui-tabs-nav">
                                                 <li><a href="#{{structure.handle}}-all">View all</a></li>
                                                 <li><a href="#{{structure.handle}}-search">Search</a></li>
-                                            </ul>							
+                                            </ul>
                                             <div id="{{structure.handle}}-all" class="ui-tabs-panel">
                                                 <form method="POST">
+                                                    <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
                                                     <div class="fields">
                                                         {% for entry in structure.entries %}
                                                             {% set local_id = entry.id %}
@@ -144,14 +149,15 @@
                                                             <div class="field checkboxfield">
                                                                 <input id="structure-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="structure-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
                                                                 <label for="structure-search-{{local_id}}">{{local_title}}</label>
-                                                            </div>									
-                                                        {% endfor %}			
+                                                            </div>
+                                                        {% endfor %}
                                                     </div>
-                                                    <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">	
-                                                </form>	
+                                                    <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">
+                                                </form>
                                             </div>
                                             <div id="{{structure.handle}}-search" class="ui-tabs-panel">
                                                 <form method="POST">
+                                                    <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
                                                     <div class="input">
                                                         <input id="{{structure.handle}}-search-input" class="search text nicetext fullwidth" placeholder="Start typing to search..." type="text" />
                                                         <ul class="search-list">
@@ -162,27 +168,28 @@
                                                                 <li class="field checkboxfield">
                                                                     <input id="structure-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="structure-search-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
                                                                     <label for="structure-search-{{local_id}}">{{local_title}}</label>
-                                                                </li>									
-                                                            {% endfor %}														
+                                                                </li>
+                                                            {% endfor %}
                                                         </ul>
                                                     </div>
-                                                    <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">	
+                                                    <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">
                                                 </form>
-                                            </div>										
+                                            </div>
                                         </div>
                                     {% else %}
-                                        <p>There are no entries in this structure.</p>                                    
-                                    {% endif %}                                        
+                                        <p>There are no entries in this structure.</p>
+                                    {% endif %}
                                 </div>
                             {% endfor %}
                         </div>
                     {% else %}
                         <p>There are no structures defined.</p>
-                    {% endif %}     
-                </div>					
+                    {% endif %}
+                </div>
                 <h4 class="ui-accordion-header">Custom menu</h4>
                 <div class="ui-accordion-content">
                     <form class="custom-url" method="POST">
+                        <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
                         <div class="fields-custom">
                             <div class="field">
                                 <div class="heading">
@@ -198,10 +205,10 @@
                                 </div>
                                 <div class="input">
                                     <input id="custom-menu-url" class="text nicetext fullwidth" type="text" />
-                                </div>				
+                                </div>
                             </div>
                         </div>
-                        <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">					
+                        <input type="submit" class="btn" value="{{ 'Add to menu'|t }}">
                     </form>
                 </div>
             </div>
@@ -222,21 +229,21 @@
                 <pre>data-attr : value-1</pre>
 				<p>Add a new line for each data attribute.</p>
             </div>
-        </div>		
-    </div>				
+        </div>
+    </div>
     <div id="menu-items">
         <form method="post" accept-charset="UTF-8">
-        
+            <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
             <input type="hidden" name="action" value="olivemenus/menuitem/saveItems">
             <input type="hidden" name="menu-id" value="{{menu.id}}" />
             <input type="hidden" id="menu-items-deleted" name="menu-items-deleted" value="" />
             <textarea class="hidden" id="menu-items-serialized" name="menu-items-serialized"></textarea>
-            
+
 			<ol id="menu-list" class="sortable">
 				{{menu_items_markup | raw}}
 			</ol>
 			<p id="menu-list-placeholder" {% if menu_items_markup is not empty %}style="display:none;"{% endif %}>There are currently no menu items assigned to this menu.</p>
-            
+
             <div class="buttons olivebuttonedititems">
                 <div class="btngroup submit first">
                     <input type="submit" class="btn submit" value="{{ 'Save'|t }}">
@@ -245,9 +252,9 @@
 						function confirm_delete() {
 							return confirm('Are you sure you want to delete the menu and all it\'s items?');
 						}
-					</script>					
+					</script>
                 </div>
-            </div>  				
+            </div>
         </form>
     </div>
 {% endset %}
