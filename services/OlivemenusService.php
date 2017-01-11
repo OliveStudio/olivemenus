@@ -70,7 +70,7 @@ class OlivemenusService extends BaseApplicationComponent
 	public function getSections ()
 	{
 		
-		$sections = '';
+		$sections = [];
 		
 		$sections['single'] = craft()->db->createCommand()
 			->select('name as name, handle as handle')
