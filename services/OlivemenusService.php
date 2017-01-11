@@ -143,6 +143,7 @@ class OlivemenusService extends BaseApplicationComponent
 			if ( $menu !== NULL )
 			{
 				$menu_id = '';
+                $menu_class = '';
 				$menu_items = craft()->olivemenus_menuitems->getMenuItems($menu->id);
 				
 				if ( !empty($config) )
@@ -151,9 +152,14 @@ class OlivemenusService extends BaseApplicationComponent
 					{
 						$menu_id = ' id="' .$config['menu-id']. '"';
 					}
+                    
+                    if ( isset($config['menu-class']) )
+                    {
+                        $menu_class .= ' ' . $config['menu-class'];
+                    }
 				}
 				
-				$localHTML .= '<div' .$menu_id. ' class="menu">';
+				$localHTML .= '<div' .$menu_id. ' class="menu' .$menu_class. '">';
 					$localHTML .= '<ul>';
 						foreach ( $menu_items as $menu_item )
 						{
