@@ -144,6 +144,7 @@ class OlivemenusService extends BaseApplicationComponent
 			{
 				$menu_id = '';
                 $menu_class = '';
+                $ul_class = '';
 				$menu_items = craft()->olivemenus_menuitems->getMenuItems($menu->id);
 				
 				if ( !empty($config) )
@@ -157,10 +158,14 @@ class OlivemenusService extends BaseApplicationComponent
                     {
                         $menu_class .= ' ' . $config['menu-class'];
                     }
+					if ( isset($config['ul-class']) )
+					{
+						$ul_class = $config['ul-class'];
+					}
 				}
 				
 				$localHTML .= '<div' .$menu_id. ' class="menu' .$menu_class. '">';
-					$localHTML .= '<ul>';
+					$localHTML .= '<ul class="' . $ul_class . '">';
 						foreach ( $menu_items as $menu_item )
 						{
 							$localHTML .= $this->getMenuItemHTML($menu_item);
@@ -193,9 +198,9 @@ class OlivemenusService extends BaseApplicationComponent
 		$menu_class = $class;
 		$menu_item_class = $menu_item_class . ' ' .$class_parent;
 
-        if ( $custom_url != '' ) $menu_item_url = $custom_url;
-        else 
-        {
+        if ( $custom_url != '' ) {
+            $menu_item_url = $this->replaceEnvironmentVariables($custom_url);
+        }else{
             $criteria = craft()->elements->getCriteria(ElementType::Entry);
             $criteria->id = $menu_item['entry_id'];
             if ( !empty($criteria->first()) ) $menu_item_url = $criteria->first()->url;
@@ -242,6 +247,18 @@ class OlivemenusService extends BaseApplicationComponent
         $localHTML .= '</li>';
         
         return $localHTML;
+    }
+	
+    private function replaceEnvironmentVariables($str){
+        $environmentVariables = craft()->config->get('environmentVariables');
+        if(is_array($environmentVariables)){
+            $tmp = array();
+            foreach($environmentVariables as $tag => $val){
+                $tmp[sprintf("{%s}", $tag)] = $val;
+            }
+            $environmentVariables = $tmp;
+            return str_replace(array_keys($environmentVariables), array_values($environmentVariables), $str);
+        }
     }
     
 }
