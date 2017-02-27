@@ -203,7 +203,8 @@ class OlivemenusService extends BaseApplicationComponent
         }else{
             $criteria = craft()->elements->getCriteria(ElementType::Entry);
             $criteria->id = $menu_item['entry_id'];
-            if ( !empty($criteria->first()) ) $menu_item_url = $criteria->first()->url;
+	    $hasCriteria =  $criteria->first();	
+            if ( !empty($hasCriteria) ) $menu_item_url = $criteria->first()->url;
         }
 
 		if ( $data_json )
