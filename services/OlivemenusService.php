@@ -156,7 +156,7 @@ class OlivemenusService extends BaseApplicationComponent
                     
                     if ( isset($config['menu-class']) )
                     {
-                        $menu_class .= ' ' . $config['menu-class'];
+                        $menu_class .= $config['menu-class'];
                     }
 					if ( isset($config['ul-class']) )
 					{
@@ -164,7 +164,7 @@ class OlivemenusService extends BaseApplicationComponent
 					}
 				}
 				
-				$localHTML .= '<div' .$menu_id. ' class="menu' .$menu_class. '">';
+				$localHTML .= '<div' .$menu_id. ' class="' .$menu_class. '">';
 					$localHTML .= '<ul class="' . $ul_class . '">';
 						foreach ( $menu_items as $menu_item )
 						{
