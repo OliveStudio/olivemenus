@@ -171,10 +171,9 @@ $(document).ready(function(){
                 customMenuTitle.removeClass('error');
                 customMenuURL.removeClass('error');
 
-                if ( customMenuTitleVal == '' || customMenuURLVal == '' )
+                if ( customMenuTitleVal == '' )
                 {
                     if ( customMenuTitleVal == '' ) customMenuTitle.addClass('error');
-                    if ( customMenuURLVal == '' ) customMenuURL.addClass('error');
                 }
                 else
                 {

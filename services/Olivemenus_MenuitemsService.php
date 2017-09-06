@@ -151,17 +151,14 @@ class Olivemenus_MenuitemsService extends BaseApplicationComponent
                                 $localHTML .= '<input class="text nicetext fullwidth" type="text" name="item-name" value="' .$menu_item['name']. '" />';
                             $localHTML .= '</div>';
 						$localHTML .= '</div>';
-                        if ( $menu_item['custom_url'] != '' )
-                        {
-                            $localHTML .= '<div class="row field">';
-                                $localHTML .= '<div class="heading">';
-                                    $localHTML .= '<label>Custom URL:</label>';
-                                $localHTML .= '</div>';
-                                $localHTML .= '<div class="input">';
-                                    $localHTML .= '<input class="text nicetext fullwidth" type="text" name="custom-url" value="' .$menu_item['custom_url']. '" />';
-                                $localHTML .= '</div>';
+                        $localHTML .= '<div class="row field">';
+                            $localHTML .= '<div class="heading">';
+                                $localHTML .= '<label>Custom URL:</label>';
                             $localHTML .= '</div>';
-                        }						
+                            $localHTML .= '<div class="input">';
+                                $localHTML .= '<input class="text nicetext fullwidth" type="text" name="custom-url" value="' .$menu_item['custom_url']. '" />';
+                            $localHTML .= '</div>';
+                        $localHTML .= '</div>';
 						$localHTML .= '<div class="row field">';
                             $localHTML .= '<div class="heading">';
                                 $localHTML .= '<label>Class:</label>';
