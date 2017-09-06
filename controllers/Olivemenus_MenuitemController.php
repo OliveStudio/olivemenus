@@ -42,7 +42,7 @@ class Olivemenus_MenuitemController extends BaseController
             if ( isset($menu_item['entry-id']) ) $entry_id = $menu_item['entry-id'];
 
             $custom_url = '';
-            if ( !isset($menu_item['entry-id']) && isset($menu_item['custom-url']) ) $custom_url = $menu_item['custom-url'];
+            if ( isset($menu_item['custom-url']) && !empty($menu_item['custom-url']) ) $custom_url = $menu_item['custom-url'];
 
             $class = '';
             if ( isset($menu_item['class']) ) $class = $menu_item['class'];
