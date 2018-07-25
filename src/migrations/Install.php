@@ -10,7 +10,7 @@ use craft\db\Migration;
 /**
  * m180517_142452_olivemenus_table migration.
  */
-class m180517_142452_olivemenus_table extends Migration
+class Install extends Migration
 {
     // Public Properties
     // =========================================================================
