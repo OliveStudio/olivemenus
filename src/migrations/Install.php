@@ -1,6 +1,6 @@
 <?php
 
-namespace craft\contentmigrations;
+namespace olivestudio\olivemenus\migrations;
 
 
 use Craft;
