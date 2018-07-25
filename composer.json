@@ -39,5 +39,6 @@
             "olivemenusService": "olivestudio\\olivemenus\\services\\OlivemenusService"
         },
         "class": "olivestudio\\olivemenus\\Olivemenus"
-    }
+    },
+	"minimum-stability": "stable"
 }
