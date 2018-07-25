@@ -2,7 +2,7 @@
 
 Olive Studio
 
-![Screenshot](resources/img/plugin-logo.png)
+![Screenshot](resources/Olivemenus.jpg)
 
 ## Requirements
 
@@ -44,4 +44,4 @@ Some things to do, and ideas for potential features:
 
 * Release it
 
-Brought to you by [Olivestudio](https://www.olivestudio.net/)
+Brought to you by [Olive Studio](https://www.olivestudio.net/)
