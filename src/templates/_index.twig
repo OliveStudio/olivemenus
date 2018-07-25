@@ -1,0 +1,65 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Olivemenus plugin for Craft CMS 3.x
+ *
+ * Olivemenus index.twig
+ *
+ * @author    Olivestudio
+ * @copyright Copyright (c) 2018 Olivestudio
+ * @link      http://www.olivestudio.net/
+ * @package   Olivemenus
+ * @since     1.0.0
+ */
+#}
+
+{% extends "_layouts/cp" %}
+
+{# Link for the ? icon at the bottom of the page #}
+{% set docsUrl = "OliveStudio/olivemenus/blob/master/README.md" %}
+
+{# The title of this CP section #}
+{% set title = "All Menus" %}
+
+{% set selectedTab = 'menus' %}
+
+{% set tabs = {
+    menus:  { label: "All Menus"|t('olivemenus'), url: url('olivemenus') },
+    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new') }
+} %}
+
+{# The content of the CP Section#}
+{% set content %}
+    <p id="menu-none"{% if menus is not empty %} class="hidden"{%endif%}">{{ "No menus exist yet."|t('olivemenus') }}</p>
+    {% if menus | length %}
+    <table id="menu-list" class="data fullwidth collapsible">
+        <thead>
+            <th scope="col">{{ "Name"|t('olivemenus') }}</th>
+            <th scope="col">{{ "Handle"|t('olivemenus') }}</th>
+            <td class="thin"></td>
+            <td class="thin"></td>
+        </thead>
+        <tbody>
+        {% for menu in menus %}
+            <tr data-id="{{ menu.id }}" data-name="{{ menu.name|t('olivemenus') }}">
+                <th scope="row" data-title="{{ 'Name'|t('olivemenus') }}"><a href="{{ url('olivemenus/menu-items/' ~ menu.id) }}">{{ menu.name|t('olivemenus') }}</a></th>
+                <td data-title="{{ 'Handle'|t('olivemenus') }}"><code>{{ menu.handle }}</code></td>
+                <td class="thin">
+                    <a class="edit icon" title="{{ 'Edit'|t('olivemenus') }}" href="{{ url('olivemenus/menu-edit/' ~ menu.id) }}" role="button"></a>
+                </td>
+                <td class="thin">
+                    <a class="delete icon" title="{{ 'Delete'|t('olivemenus') }}" role="button"></a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <div id="menu-new" class="buttons">
+        <a href="{{ url('olivemenus/menu-new') }}" class="btn submit add icon">{{ "New Menu"|t('olivemenus') }}</a>
+    </div>
+{% endset %}
+{% js %}
+    window.csrfTokenName = "{{ craft.app.config.general.csrfTokenName|e('js') }}";
+    window.csrfTokenValue = "{{ craft.app.request.csrfToken|e('js') }}";
+{% endjs %}

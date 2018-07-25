@@ -1,0 +1,43 @@
+{
+    "name": "olivestudio/craft-olivemenus",
+    "description": "A powerful menus plugin for Craft 3 built for the need of simplicity and flexibility",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "olivemenus"
+    ],
+    "support": {
+        "docs": "https://github.com/OliveStudio/olivemenus/blob/master/README.md",
+        "issues": "https://github.com/OliveStudio/olivemenus/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Olive Studio",
+            "homepage": "https://www.olivestudio.net/"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0-RC1"
+    },
+    "autoload": {
+        "psr-4": {
+          "olivestudio\\olivemenus\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Olivemenus",
+        "handle": "olivemenus",
+        "hasCpSettings": false,
+        "hasCpSection": true,
+        "changelogUrl": "https://raw.githubusercontent.com/OliveStudio/olivemenus/master/CHANGELOG.md",
+        "components": {
+            "olivemenusService": "olivestudio\\olivemenus\\services\\OlivemenusService"
+        },
+        "class": "olivestudio\\olivemenus\\Olivemenus"
+    }
+}
