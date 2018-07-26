@@ -1,0 +1,74 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = "New Menu"|t %}
+
+{% set selectedTab = 'new' %}
+
+{% set tabs = {
+    menus: { label: "All Menus"|t, url: url('olivemenus') },
+    new:    { label: "New Menu"|t, url: url('olivemenus/menu-new') }
+} %}
+
+{% set content %}
+	<form method="post" accept-charset="UTF-8">
+        
+	    <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
+		<input type="hidden" name="action" value="olivemenus/menus/saveMenu">
+
+		{% set nameValidationError = '' %}
+		{% set handleValidationError = '' %}
+
+		{% set nameValue = '' %}
+		{% set handleValue = '' %}
+
+		{% if menu is defined %}
+
+			{% set nameValidationError = menu.getErrors('name') %}
+			{% set handleValidationError = menu.getErrors('handle') %}
+
+			{% if nameValidationError is not empty or handleValidationError is not empty %}
+				{% set nameValue = menu.name %}
+				{% set handleValue = menu.handle %}
+			{% endif %}
+
+		{% endif %}
+
+		{{
+			forms.textField({
+				label: "Name"|t,
+				id: 'name',
+				name: 'name',
+				first: true,
+				autofocus: true,
+				required: true,
+				value: nameValue,
+				errors: nameValidationError
+			})
+		}}
+
+		{{
+			forms.textField({
+				label: "Handle"|t,
+				id: 'handle',
+				name: 'handle',
+				required: true,
+				value: handleValue,
+				errors: handleValidationError
+			})
+		}}
+
+		<div class="buttons">
+			<div class="btngroup olivemenubtngroup submit first">
+				<input type="submit" class="btn submit" value="{{ 'Save'|t }}">
+				<a class="btn back-button" href="{{url('olivemenus')}}">Back</a>
+			</div>
+		</div>
+
+	</form>
+{% endset %}
+
+{% set js %}
+	new Craft.HandleGenerator('#name', '#handle');
+{% endset %}
+{% includeJs js %}
