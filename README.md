@@ -2,7 +2,7 @@
 
 Olive Studio
 
-![Screenshot](resources/Olivemenus.jpg)
+![Olivemenus for Craft CMS. OliveStudio.net](resources/Olivemenus.jpg)
 
 ## Requirements
 
