@@ -233,15 +233,18 @@ $(document).ready(function() {
             for (var index in menuListToArray) {
                 var menuItem = menuListToArray[index];
                 if (typeof menuItem.id !== 'undefined') {
+                    var menuItemEntryIDValue = '',
+                        menuItemCustomURLValue= '';
+
                     var menuItemParentID = (typeof menuItem.parent_id !== null ) ? menuItem.parent_id : 0,
                         menuItemElement = $('#menu-item-' + menuItem.id),
                         menuItemID = menuItemElement.find('input[name="item-id"]'),
                         menuItemNameElement = menuItemElement.find('input[name="item-name"]'),
                         menuItemNameValue = menuItemNameElement.val(),
+                        
                         menuItemEntryIDElement = menuItemElement.find('input[name="item-entry-id"]'),
-                        menuItemEntryIDValue = menuItemEntryIDElement.val(),
                         menuItemCustomURLElement = menuItemElement.find('input[name="custom-url"]'),
-                        menuItemCustomURLValue = menuItemCustomURLElement.val(),
+
                         menuItemClassElement = menuItemElement.find('input[name="class"]'),
                         menuItemClassValue = menuItemClassElement.val(),
                         menuItemClassParentElement = menuItemElement.find('input[name="class-parent"]'),
@@ -254,8 +257,14 @@ $(document).ready(function() {
                     } else {
                         menuItemID = menuItemID.val();
                     }
+                    
+                    if (menuItemCustomURLElement.length) {
+                        menuItemCustomURLValue = menuItemCustomURLElement.val();
+                    } else {
+                        menuItemEntryIDValue = menuItemEntryIDElement.val();
+                    }
 
-                    var menuItemData = {
+                        var menuItemData = {
                         'item-id' : {
                             db:menuItemID,
                             html:menuItem.id

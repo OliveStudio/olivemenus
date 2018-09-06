@@ -17,7 +17,6 @@ use olivestudio\olivemenus\records\OlivemenusItemsRecord;
 use Craft;
 use craft\base\Component;
 use craft\elements\Entry;
-use craft\elements\Category;
 
 /**
  * OlivemenusService Service
@@ -43,7 +42,7 @@ class OlivemenuItemsService extends Component
             foreach($sections as $handle => $values) {
                 if (!empty($sections[$handle])) {
                     foreach ($values as $index => $value) {
-                        $sections[$handle][$index]['entries'] = $this->getEntriesBySection($value['handle']);
+                        $sections[$handle][$index]['entries'] = $this->getFirstEntriesBySection($value['handle']);
                     }
                 }
             }
@@ -183,6 +182,12 @@ class OlivemenuItemsService extends Component
                     ->all();
     }
 
+    private function getFirstEntriesBySection($handle) {
+        return Entry::find()
+                    ->section($handle)
+                    ->one();
+    }
+
     private function sortMenuItemsByParents($arrMenuItems) {
         $counter = 0;
         $arrMenuItemsSorted = [];
@@ -224,12 +229,6 @@ class OlivemenuItemsService extends Component
         $entry = Entry::find()
             ->id($menuItem['entry_id'])
             ->one();
-
-        if (!$entry) {
-            $entry = Category::find()
-                ->id($menuItem['entry_id'])
-                ->one();
-        }
 
         $localHTML .= '<li id="menu-item-' .$menuItem['id']. '">';
             $localHTML .= '<div>';

@@ -17,7 +17,6 @@ use olivestudio\olivemenus\records\OlivemenusRecord;
 use Craft;
 use craft\base\Component;
 use craft\elements\Entry;
-use craft\elements\Category;
 
 /**
  * OlivemenusService Service
@@ -158,13 +157,6 @@ class OlivemenusService extends Component
                 ->one();
 
             if (!empty($entry) ) $menu_item_url = $entry->url;
-            else {
-                $entry = Category::find()
-                ->id($menu_item['entry_id'])
-                ->one();
-
-                if (!empty($entry) ) $menu_item_url = $entry->url;
-            }
         }
 
         if ($data_json) {

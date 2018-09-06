@@ -65,7 +65,7 @@ class MenuItemsController extends Controller
         $data['menu'] = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
         $data['sections'] = Olivemenus::$plugin->olivemenuItems->getSectionsWithEntries();
         $data['menuItemsMarkup'] = Olivemenus::$plugin->olivemenuItems->getMenuItemsAdminMarkup($menuId);
-        $data['categories'] = Craft::$app->categories->getAllGroups();
+
         return $this->renderTemplate('olivemenus/_menu-items', $data);
     }
 
