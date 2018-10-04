@@ -73,7 +73,7 @@
                             <div class="ui-accordion-content">
                                 {% if channel.entries is defined and channel.entries is not empty %}
                                 {% set entries = craft.entries()
-                                                .section(channel.name)
+                                                .section(channel.handle)
                                                 .all() %}
                                     <div class="os-tabs ui-tabs">
                                         <ul class="ui-tabs-nav">
@@ -137,7 +137,7 @@
                                 <div class="ui-accordion-content">
                                     {% if structure.entries is defined and structure.entries is not empty %}
                                     {% set entries = craft.entries()
-                                                    .section(structure.name)
+                                                    .section(structure.handle)
                                                     .all() %}
                                         <div class="os-tabs ui-tabs">
                                             <ul class="ui-tabs-nav">
