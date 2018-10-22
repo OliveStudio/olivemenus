@@ -20,3 +20,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 1.0.4 - 2018-10-04
 ### Fix for List of entries not shown
+
+## 1.0.5 - 2018-10-22
+### Added category support to menu
