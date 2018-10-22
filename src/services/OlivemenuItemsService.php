@@ -17,6 +17,7 @@ use olivestudio\olivemenus\records\OlivemenusItemsRecord;
 use Craft;
 use craft\base\Component;
 use craft\elements\Entry;
+use craft\elements\Category;
 
 /**
  * OlivemenusService Service
@@ -229,6 +230,12 @@ class OlivemenuItemsService extends Component
         $entry = Entry::find()
             ->id($menuItem['entry_id'])
             ->one();
+
+        if (!$entry) {
+            $entry = Category::find()
+                ->id($menuItem['entry_id'])
+                ->one();
+        }
 
         $localHTML .= '<li id="menu-item-' .$menuItem['id']. '">';
             $localHTML .= '<div>';
