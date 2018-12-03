@@ -124,7 +124,7 @@ class OlivemenusService extends Component
                 $localHTML .= '<div' .$menu_id. ' class="menu' .$menu_class. '">';
                     $localHTML .= '<ul class="' . $ul_class . '">';
                         foreach ( $menu_items as $menu_item ) {
-                            $localHTML .= $this->getMenuItemHTML($menu_item);
+                            $localHTML .= $this->getMenuItemHTML($menu_item, $config);
                         }
                     $localHTML .= '</ul>';
                 $localHTML .= '</div>';
@@ -135,7 +135,7 @@ class OlivemenusService extends Component
         }
     }
 
-    private function getMenuItemHTML($menu_item) {
+    private function getMenuItemHTML($menu_item, $config) {
         $menu_item_url = '';
         $menu_class = '';
         $menu_item_class = 'menu-item';
@@ -197,10 +197,16 @@ class OlivemenusService extends Component
         }
 
         if (isset($menu_item['children'])) {
-            $localHTML .= '<ul class="sub-menu">';
+
+            if (isset($config['sub-menu-ul-class'])) {
+                $ul_class = $config['sub-menu-ul-class'];
+            }else{
+                $ul_class = $config['sub-menu'];
+            }
+            $localHTML .= '<ul class="'.$ul_class.'">';
                 foreach ( $menu_item['children'] as $child )
                 {
-                   $localHTML .= $this->getMenuItemHTML($child);
+                   $localHTML .= $this->getMenuItemHTML($child, $config);
                 }
             $localHTML .= '</ul>';
         }
