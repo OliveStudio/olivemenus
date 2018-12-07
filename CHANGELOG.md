@@ -23,3 +23,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 1.0.5 - 2018-10-22
 ### Added category support to menu
+
+## 1.0.6 - 2018-12-07
+### Added the ability to add a submenu class during initiation
