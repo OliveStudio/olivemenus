@@ -191,7 +191,7 @@ class Install extends Migration
      */
     protected function removeTables()
     {
-        $this->dropTableIfExists('{{%olivemenus}}');
         $this->dropTableIfExists('{{%olivemenus_items}}');
+        $this->dropTableIfExists('{{%olivemenus}}');
     }
 }

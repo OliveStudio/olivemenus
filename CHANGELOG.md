@@ -26,3 +26,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 1.0.6 - 2018-12-07
 ### Added the ability to add a submenu class during initiation
+
+## 1.0.7 - 2018-12-07
+### Fixed uninstall issue with droping tables
