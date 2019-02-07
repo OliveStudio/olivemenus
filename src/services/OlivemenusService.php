@@ -138,6 +138,7 @@ class OlivemenusService extends Component
     private function getMenuItemHTML($menu_item, $config) {
         $menu_item_url = '';
         $menu_class = '';
+        $ul_class = '';
         $menu_item_class = 'menu-item';
         $entry_id = $menu_item['entry_id'];
         $custom_url = $menu_item['custom_url'];
@@ -200,9 +201,8 @@ class OlivemenusService extends Component
 
             if (isset($config['sub-menu-ul-class'])) {
                 $ul_class = $config['sub-menu-ul-class'];
-            }else{
-                $ul_class = $config['sub-menu'];
             }
+
             $localHTML .= '<ul class="'.$ul_class.'">';
                 foreach ( $menu_item['children'] as $child )
                 {

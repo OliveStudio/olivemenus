@@ -29,3 +29,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 1.0.7 - 2018-12-07
 ### Fixed uninstall issue with droping tables
+
+## 1.0.8 - 2019-02-07
+### Fixed issues
+- 28 'sub-menu-ul-class' throwing exception on 1.0.6+
+- 29 Undefined index: sub-menu error
+
