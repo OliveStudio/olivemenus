@@ -35,3 +35,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - 28 'sub-menu-ul-class' throwing exception on 1.0.6+
 - 29 Undefined index: sub-menu error
 
+## 1.0.9 - 2019-04-25
+### Fixed issues
+- 30 Plugin breaks when content is deleted
+

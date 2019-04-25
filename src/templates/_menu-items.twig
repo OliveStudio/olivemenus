@@ -27,13 +27,15 @@
                                     {{ csrfInput() }}
                                     <div class="fields">
                                         {% for single in sections.single %}
-                                            {% set local_id = single.entries.id %}
-                                            {% set local_title = single.entries.title %}
-                                            {% set local_url = single.entries.url %}
-                                            <div class="field checkboxfield">
-                                                <input id="single-{{local_id}}" type="checkbox" value="{{local_id}}" name="single-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-                                                <label for="single-{{local_id}}">{{local_title}}</label>
-                                            </div>
+                                            {% if single.entries is not empty %}
+                                                {% set local_id = single.entries.id %}
+                                                {% set local_title = single.entries.title %}
+                                                {% set local_url = single.entries.url %}
+                                                <div class="field checkboxfield">
+                                                    <input id="single-{{local_id}}" type="checkbox" value="{{local_id}}" name="single-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
+                                                    <label for="single-{{local_id}}">{{local_title}}</label>
+                                                </div>
+                                            {% endif %}
                                         {% endfor %}
                                     </div>
                                     <input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}" />
@@ -46,13 +48,15 @@
                                         <input id="singles-search-input" class="search text nicetext fullwidth" placeholder="{{ 'Start typing to search...'|t('olivemenus') }}" type="text" />
                                         <ul class="search-list">
                                             {% for single in sections.single %}
-                                                {% set local_id = single.entries.id %}
-                                                {% set local_title = single.entries.title %}
-                                                {% set local_url = single.entries.url %}
-                                                <li class="field checkboxfield">
-                                                    <input id="single-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="single-search-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-                                                    <label for="single-search-{{local_id}}">{{local_title}}</label>
-                                                </li>
+                                                {% if single.entries is not empty %}
+                                                    {% set local_id = single.entries.id %}
+                                                    {% set local_title = single.entries.title %}
+                                                    {% set local_url = single.entries.url %}
+                                                    <li class="field checkboxfield">
+                                                        <input id="single-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="single-search-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
+                                                        <label for="single-search-{{local_id}}">{{local_title}}</label>
+                                                    </li>
+                                                {% endif %}
                                             {% endfor %}
                                         </ul>
                                     </div>
