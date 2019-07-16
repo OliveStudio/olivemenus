@@ -151,6 +151,16 @@ class OlivemenusService extends Component
         $menu_class = $class;
         $menu_item_class = $menu_item_class . ' ' .$class_parent;
 
+        if (!empty($config)) {
+            if (isset($config['li-class'])) {
+                $menu_item_class .= ' ' . $config['li-class'];
+            }
+
+            if (isset($config['link-class'])) {
+                $menu_class .= ' ' . $config['link-class'];
+            }
+        }
+
         if ($custom_url != '') {
             $menu_item_url = $this->replaceEnvironmentVariables($custom_url);
         } else {
