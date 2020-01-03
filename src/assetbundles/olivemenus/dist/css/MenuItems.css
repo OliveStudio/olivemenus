@@ -269,7 +269,7 @@
     overflow:hidden;
 }
 #menu-items .sortable li.active > .ui-sortable-handle > .item-content {
-    max-height:420px;
+    max-height:500px;
 }
 #menu-items .sortable li .item-content .inner {
     padding:10px;
