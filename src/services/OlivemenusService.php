@@ -188,6 +188,9 @@ class OlivemenusService extends Component
             
         }
 
+        //extract target option
+        $target = $menu_item['target'];
+
         $current_active_url = Craft::$app->request->getServerName() . Craft::$app->request->getUrl();
         if ($current_active_url != '' && $menu_item_url != '') {
             $menu_item_url_filtered = preg_replace('#^https?://#', '', $menu_item_url);
@@ -202,7 +205,7 @@ class OlivemenusService extends Component
         $localHTML .= '<li id="menu-item-' .$menu_item['id']. '" class="' .$menu_item_class. '">';
 
         if ($menu_item_url) {
-            $localHTML .= '<a class="'. $menu_class. '" href="' .$menu_item_url. '"' .$data_attributes. '>' . Craft::t('olivemenus', $menu_item['name']) . '</a>';
+            $localHTML .= '<a class="'. $menu_class. '" target="'. $target .'" href="' .$menu_item_url. '"' .$data_attributes. '>' . Craft::t('olivemenus', $menu_item['name']) . '</a>';
         } else {
             $localHTML .= '<span class="'. $menu_class. '"' .$data_attributes. '>' . Craft::t('olivemenus', $menu_item['name']) . '</span>';
         }

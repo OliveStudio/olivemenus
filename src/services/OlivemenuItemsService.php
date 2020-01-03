@@ -80,6 +80,7 @@ class OlivemenuItemsService extends Component
         $record->class = $model->class;
         $record->class_parent = $model->class_parent;
         $record->data_json = $model->data_json;
+        $record->target = $model->target;
 
         $save = $record->save();
         if ( !$save ) {
@@ -130,6 +131,7 @@ class OlivemenuItemsService extends Component
             $arrMenuItems[$intKey]['class'] = $objItem->class;
             $arrMenuItems[$intKey]['class_parent'] = $objItem->class_parent;
             $arrMenuItems[$intKey]['data_json'] = $objItem->data_json;
+            $arrMenuItems[$intKey]['target'] = $objItem->target;
         }
 
         if ($arrMenuItems) {
@@ -290,6 +292,19 @@ class OlivemenuItemsService extends Component
                                 $localHTML .= '<textarea class="text nicetext fullwidth" name="data-json">' .$menuItem['data_json']. '</textarea>';
                             $localHTML .= '</div>';
                         $localHTML .= '</div>';
+
+                        $localHTML .= '<div class="row field">';
+                            $localHTML .= '<div class="heading">';
+                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Target options') . ':</label>';
+                            $localHTML .= '</div>';
+                            $localHTML .= '<div class="input">';
+                                $localHTML .= '<select id="target-'.$menuItem['id'].'" class="text nicetext fullwidth" name="target">';
+                                    $localHTML .= '<option value="_self" '.(($menuItem['target']=='_self') ? 'selected' : '') .' >Open in same tab</option>';
+                                    $localHTML .= '<option value="_blank" '.(($menuItem['target']=='_blank') ? 'selected' : '') .'>Open in new tab</option>';
+                                $localHTML .= '</select>';
+                            $localHTML .= '</div>';
+                        $localHTML .= '</div>';
+
                         if ($menuItem['custom_url'] == '') {
                             $localHTML .= '<div class="row field">';
                                 $localHTML .= '<div class="heading">';
