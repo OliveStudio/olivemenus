@@ -129,6 +129,19 @@ $(document).ready(function() {
                                             itemHTML += '<textarea class="text nicetext fullwidth" name="data-json"></textarea>';
                                         itemHTML += '</div>';
                                     itemHTML += '</div>';
+
+                                    itemHTML += '<div class="row field">';
+                                        itemHTML += '<div class="heading">';
+                                            itemHTML += '<label>' + Craft.t('olivemenus','Target options') + ':</label>';
+                                        itemHTML += '</div>';
+                                        itemHTML += '<div class="input">';
+                                            itemHTML += '<select id="target-' + inputCounter + '" class="text nicetext fullwidth" name="target">';
+                                                itemHTML += '<option value="_self">Open in same tab</option>';
+                                                itemHTML += '<option value="_blank">Open in new tab</option>';
+                                            itemHTML += '</select>';
+                                        itemHTML += '</div>';
+                                    itemHTML += '</div>';
+
                                     itemHTML += '<div class="row field">';
                                         itemHTML += '<div class="heading">';
                                             if ( itemURL ) itemHTML += '<label>' + Craft.t('olivemenus','Original') + ':</label> <a href="' + itemURL + '" target="_blank">' + itemName + '</a>';
@@ -209,6 +222,19 @@ $(document).ready(function() {
                                             itemHTML += '<textarea class="text nicetext fullwidth" name="data-json"></textarea>';
                                         itemHTML += '</div>';
                                     itemHTML += '</div>';
+
+                                    itemHTML += '<div class="row field">';
+                                        itemHTML += '<div class="heading">';
+                                            itemHTML += '<label>' + Craft.t('olivemenus','Target options') + ':</label>';
+                                        itemHTML += '</div>';
+                                        itemHTML += '<div class="input">';
+                                            itemHTML += '<select id="target-' + inputCounter + '" class="text nicetext fullwidth" name="target">';
+                                                itemHTML += '<option value="_self">Open in same tab</option>';
+                                                itemHTML += '<option value="_blank">Open in new tab</option>';
+                                            itemHTML += '</select>';
+                                        itemHTML += '</div>';
+                                    itemHTML += '</div>';
+
                                 itemHTML += '</div>';
                             itemHTML += '</div>';
                         itemHTML += '</div>';
@@ -275,7 +301,8 @@ $(document).ready(function() {
                         'custom-url' : menuItemCustomURLValue,
                         'class' : menuItemClassValue,
                         'class-parent' : menuItemClassParentValue,
-                        'data-json' : menuItemDataValue
+                        'data-json' : menuItemDataValue,
+                        'target' : $('#target-' + menuItem.id + ' :selected').val()
                     };
 
                     menuListProcessed.push(menuItemData);

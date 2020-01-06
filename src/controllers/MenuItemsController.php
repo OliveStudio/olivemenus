@@ -114,6 +114,7 @@ class MenuItemsController extends Controller
                 $arrData['class']= (isset($menuItem['class']) ? $menuItem['class'] : '');
                 $arrData['class_parent']= (isset($menuItem['class-parent']) ? $menuItem['class-parent'] : '');
                 $arrData['data_json']= (isset($menuItem['data-json']) ? $menuItem['data-json'] : '');
+                $arrData['target']= (isset($menuItem['target']) ? $menuItem['target'] : '');
 
                 $menuItemModel->setAttributes($arrData);
 

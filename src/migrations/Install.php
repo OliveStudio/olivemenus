@@ -111,6 +111,7 @@ class Install extends Migration
                     'class' => $this->string(255),
                     'class_parent' => $this->string(255),
                     'data_json' => $this->string(255),
+                    'target' => $this->string(255),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),

@@ -102,6 +102,13 @@ class OlivemenusItemsModel extends Model
      */
     public $data_json;
 
+    /**
+     * Target attribute
+     *
+     * @var string
+     */
+    public $target;
+
     public $dateCreated;
 
     public $dateUpdated;
@@ -122,7 +129,7 @@ class OlivemenusItemsModel extends Model
     {
         return [
             [['id', 'menu_id', 'parent_id', 'item_order', 'entry_id'], 'integer'],
-            [['name', 'custom_url', 'class', 'class_parent', 'data_json'], 'string'],
+            [['name', 'custom_url', 'class', 'class_parent', 'data_json', 'target'], 'string'],
             [['menu_id', 'parent_id', 'item_order', 'name'], 'required'],
         ];
     }
