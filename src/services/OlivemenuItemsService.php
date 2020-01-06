@@ -159,21 +159,21 @@ class OlivemenuItemsService extends Component
             ->select(["name AS name", "handle AS handle"])
             ->from(['{{%sections}}'])
             ->orderBy('name')
-            ->where(['type' => 'single'])
+            ->where(['type' => 'single', 'dateDeleted'=>NULL])
             ->all();
 
         $sections['structure'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
             ->from(['{{%sections}}'])
             ->orderBy('name')
-            ->where(['type' => 'structure'])
+            ->where(['type' => 'structure', 'dateDeleted'=>NULL])
             ->all();
 
         $sections['channel'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
             ->from(['{{%sections}}'])
             ->orderBy('name')
-            ->where(['type' => 'channel'])
+            ->where(['type' => 'channel', 'dateDeleted'=>NULL])
             ->all();
 
         return $sections;
