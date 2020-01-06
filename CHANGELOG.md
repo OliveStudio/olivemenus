@@ -39,3 +39,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Fixed issues
 - 30 Plugin breaks when content is deleted
 
+## 1.1.0 - 2020-01-06
+### Fixed issue showing deleted entries + added new tab option ability
+- 35 Entries still showing on olivemenu admin listing even after deleted from entries page
+- 32 Is there a way that you can assign a menu item to open in a new tab?
+
