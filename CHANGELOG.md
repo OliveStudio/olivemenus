@@ -44,3 +44,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - 35 Entries still showing on olivemenu admin listing even after deleted from entries page
 - 32 Is there a way that you can assign a menu item to open in a new tab?
 
+## 1.1.1 - 2020-02-10
+### Fixed composer.json to have the correct version
+
+
+
