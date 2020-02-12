@@ -2,11 +2,11 @@
 
 namespace olivestudio\olivemenus\migrations;
 
-use Craft;
 use craft\db\Migration;
 
 /**
- * m200212_124859_add_target_field_tomenus_items_table migration.
+ * Migration: Add target field to menus_items_table migration.
+ * @since 1.1.1
  */
 class m200212_124859_add_target_field_tomenus_items_table extends Migration
 {
@@ -16,7 +16,10 @@ class m200212_124859_add_target_field_tomenus_items_table extends Migration
     public function safeUp()
     {
         // Place migration code here...
-		$this->addColumn('{{%olivemenus_items}}', 'target', $this->string(255));
+		
+        if (!$this->db->columnExists('{{%olivemenus_items}}', 'target')) {
+			$this->addColumn('{{%olivemenus_items}}', 'target', $this->string(255)->after('data_json'));
+		}
     }
 
     /**
