@@ -8,7 +8,7 @@ use craft\db\Migration;
  * Migration: Add target field to menus_items_table migration.
  * @since 1.1.1
  */
-class m200212_124859_add_target_field_tomenus_items_table extends Migration
+class m200212_124859_olivemenus_addFieldToMenusItemsTable extends Migration
 {
     /**
      * @inheritdoc
@@ -27,7 +27,7 @@ class m200212_124859_add_target_field_tomenus_items_table extends Migration
      */
     public function safeDown()
     {
-        echo "m200212_124859_add_target_field_tomenus_items_table cannot be reverted.\n";
+        echo "m200212_124859_olivemenus_addFieldToMenusItemsTable cannot be reverted.\n";
         return false;
     }
 }
