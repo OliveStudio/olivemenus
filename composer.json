@@ -2,7 +2,7 @@
     "name": "olivestudio/craft-olivemenus",
     "description": "A powerful menus plugin for Craft 3 built for the need of simplicity and flexibility",
     "type": "craft-plugin",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "keywords": [
         "craft",
         "cms",
