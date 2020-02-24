@@ -237,7 +237,7 @@ $(document).ready(function() {
                         menuItemCustomURLValue= '';
 
                     var menuItemParentID = (typeof menuItem.parent_id !== null ) ? menuItem.parent_id : 0,
-                        menuItemElement = $('#menu-item-' + menuItem.id),
+                        menuItemElement = $('#menu-item-' + menuItem.id + ' > div'),
                         menuItemID = menuItemElement.find('input[name="item-id"]'),
                         menuItemNameElement = menuItemElement.find('input[name="item-name"]'),
                         menuItemNameValue = menuItemNameElement.val(),
