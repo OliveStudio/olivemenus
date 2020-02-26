@@ -47,5 +47,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 1.1.1 - 2020-02-10
 ### Fixed composer.json to have the correct version
 
+## 1.1.6 - 2020-02-26
+### Fixed update plugin + custom child item break
+- Custom Child Item breaks the link of parent item #38
 
 
