@@ -51,4 +51,5 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Fixed update plugin + custom child item break
 - Custom Child Item breaks the link of parent item #38
 
-
+## 1.1.7 - 2020-02-28
+### Added multisite option
