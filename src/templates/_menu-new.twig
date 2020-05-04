@@ -6,14 +6,25 @@
 {% set selectedTab = 'new' %}
 
 {% set tabs = {
-    menus: { label: "All Menus"|t('olivemenus'), url: url('olivemenus') },
-    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new') }
+    menus: { label: "All Menus"|t('olivemenus'), url: url('olivemenus/' ~ objSite.handle) },
+    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new/' ~ objSite.handle) }
 } %}
+
+{% set showSiteMenu = (craft.app.getIsMultiSite() ? true : false) %}
+{% set urlFormat = 'olivemenus/menu-new/{handle}' %}
+{% set selectedSiteId = objSite.id %}
+
+{% block contextMenu %}
+    {% if showSiteMenu %}
+        {% include "_elements/sitemenu" %}
+    {% endif %}
+{% endblock %}
 
 {% set content %}
     <form id="form-menu-new" method="post" accept-charset="UTF-8">
         {{ csrfInput() }}
         <input type="hidden" name="action" value="olivemenus/menu/save-menu" />
+        <input type="hidden" name="data[site_id]" value="{{objSite.id}}" />
 
         {% set nameValidationError = '' %}
         {% set handleValidationError = '' %}
@@ -68,7 +79,7 @@
         <div class="buttons">
             <div class="btngroup olivemenubtngroup submit first">
                 <input type="submit" class="btn submit" value="{{ 'Save'|t('olivemenus') }}" />
-                <a class="btn back-button" href="{{url('olivemenus')}}">{{ "Back"|t('olivemenus') }}</a>
+                <a class="btn back-button" href="{{url('olivemenus/' ~ objSite.handle)}}">{{ "Back"|t('olivemenus') }}</a>
             </div>
         </div>
     </form>

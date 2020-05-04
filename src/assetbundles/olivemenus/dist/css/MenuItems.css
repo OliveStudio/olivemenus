@@ -287,3 +287,7 @@
 	background:#fafafa;
 	border:1px solid #eaeaea;
 }
+
+.d-flex {
+	display: flex;
+}

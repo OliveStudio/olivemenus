@@ -59,10 +59,16 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex($siteHandle)
     {
+        $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        if (!$objSite) {
+            $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+            $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        }
         $this->view->registerAssetBundle(OlivemenusAsset::class);
-        $data['menus'] = Olivemenus::$plugin->olivemenus->getAllMenus();
+        $data['menus'] = Olivemenus::$plugin->olivemenus->getAllMenus($objSite->id);
+        $data['objSite'] = $objSite;
 
         return $this->renderTemplate('olivemenus/_index', $data);
     }
@@ -73,11 +79,18 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionMenuNew()
+    public function actionMenuNew($siteHandle)
     {
+        $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        if (!$objSite) {
+            $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+            $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        }
+        $data['objSite'] = $objSite;
+
         $this->view->registerAssetBundle(OlivemenusAsset::class);
 
-        return $this->renderTemplate('olivemenus/_menu-new');
+        return $this->renderTemplate('olivemenus/_menu-new', $data);
     }
     /**
      * Handle a request going to our plugin's actionSaveMenu URL,
@@ -98,15 +111,29 @@ class MenuController extends Controller
 
         if (!$model->validate()) {
             Craft::$app->getSession()->setError(Craft::t('olivemenus', 'Validation errors have occured.'));
+            
+            $objSite = Craft::$app->getSites()->getSiteById($model->site_id);
+            if (!$objSite) {
+                $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+                $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+            }
+
             return $this->renderTemplate('olivemenus/_menu-new', [
                 'menu' => $model,
-                'errors' => $model->getErrors()
+                'errors' => $model->getErrors(),
+                'objSite' => $objSite
             ]);
         } else {
             Olivemenus::$plugin->olivemenus->saveMenu($model);
             Craft::$app->getSession()->setNotice(Craft::t('olivemenus', 'Menu saved successfully.'));
 
-            return $this->redirect('olivemenus');
+            $objSite = Craft::$app->getSites()->getSiteById($model->site_id);
+            if (!$objSite) {
+                $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+            } else {
+                $siteHandle = $objSite->handle;
+            }
+            return $this->redirect("olivemenus/$siteHandle");
         }
 
     }
@@ -125,14 +152,22 @@ class MenuController extends Controller
             $menuId = Craft::$app->request->getSegment(3);
 
             if ($menuId) {
+                $menu = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
                 if (Olivemenus::$plugin->olivemenus->deleteMenuById($menuId)) {
                     Craft::$app->getSession()->setNotice(Craft::t('olivemenus', 'Menu deleted successfully.'));
                 } else {
                     Craft::$app->getSession()->setError(Craft::t('olivemenus', 'An error occurred while deleting menu.'));
                 }
+                $objSite = Craft::$app->getSites()->getSiteById($menu->site_id);
+                if (!$objSite) {
+                    $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+                } else {
+                    $siteHandle = $objSite->handle;
+                }
+                return $this->redirect("olivemenus/$siteHandle");
             }
 
-            return $this->redirect('olivemenus');
+            return $this->redirect("olivemenus");
         }
     }
 
@@ -157,6 +192,13 @@ class MenuController extends Controller
                     $arrData['menu'] = $model;
                 }
             }
+
+            $objSite = Craft::$app->getSites()->getSiteById($menu->site_id);
+            if (!$objSite) {
+                $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+                $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+            }
+            $arrData['objSite'] = $objSite;
 
             return $this->renderTemplate('olivemenus/_menu-edit', $arrData);
         }

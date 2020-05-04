@@ -10,8 +10,8 @@
 {% set selectedTab = '' %}
 
 {% set tabs = {
-    menus: { label: "All Menus"|t('olivemenus'), url: url('olivemenus') },
-    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new') }
+    menus: { label: "All Menus"|t('olivemenus'), url: url('olivemenus/' ~ objSite.handle) },
+    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new/' ~ objSite.handle) }
 } %}
 
 {% set content %}
@@ -19,6 +19,7 @@
         {{ csrfInput() }}
         <input type="hidden" name="action" value="olivemenus/menu/menu-edit" />
         <input type="hidden" name="data[id]" value="{{menu.id}}" />
+        <input type="hidden" name="data[site_id]" value="{{menu.site_id}}" />
 
         {% set nameValidationError = '' %}
         {% set handleValidationError = '' %}
@@ -71,7 +72,7 @@
         <div class="buttons">
             <div class="btngroup submit first">
                 <input type="submit" class="btn submit" value="{{ 'Save'|t('olivemenus') }}" />
-                <a class="btn back-button" href="{{url('olivemenus')}}">{{ "Back"|t('olivemenus') }}</a>
+                <a class="btn back-button" href="{{url('olivemenus/' ~ objSite.handle)}}">{{ "Back"|t('olivemenus') }}</a>
             </div>
         </div>
     </form>

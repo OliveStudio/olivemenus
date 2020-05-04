@@ -37,8 +37,10 @@ class OlivemenusService extends Component
     // Public Methods
     // =========================================================================
     
-    public function getAllMenus() {
-        return OlivemenusRecord::find()->all();
+    public function getAllMenus($siteId) {
+        return OlivemenusRecord::find()
+                    ->where(['site_id' => $siteId])
+                    ->all();
     }
 
     public function getMenuById($id) {
@@ -87,6 +89,7 @@ class OlivemenusService extends Component
 
         $record->name = $model->name;
         $record->handle = $model->handle;
+        $record->site_id = $model->site_id;
 
         $save = $record->save();
         if (!$save) {

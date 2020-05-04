@@ -24,13 +24,23 @@
 {% set selectedTab = 'menus' %}
 
 {% set tabs = {
-    menus:  { label: "All Menus"|t('olivemenus'), url: url('olivemenus') },
-    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new') }
+    menus:  { label: "All Menus"|t('olivemenus'), url: url('olivemenus/' ~ objSite.handle) },
+    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new/' ~ objSite.handle) }
 } %}
+
+{% set showSiteMenu = (craft.app.getIsMultiSite() ? true : false) %}
+{% set urlFormat = 'olivemenus/{handle}' %}
+{% set selectedSiteId = objSite.id %}
+
+{% block contextMenu %}
+    {% if showSiteMenu %}
+        {% include "_elements/sitemenu" %}
+    {% endif %}
+{% endblock %}
 
 {# The content of the CP Section#}
 {% set content %}
-    <p id="menu-none"{% if menus is not empty %} class="hidden"{%endif%}">{{ "No menus exist yet."|t('olivemenus') }}</p>
+    <p id="menu-none" {% if menus is not empty %} class="hidden" {% endif %}>{{ "No menus exist yet."|t('olivemenus') }}</p>
     {% if menus | length %}
     <table id="menu-list" class="data fullwidth collapsible">
         <thead>
@@ -56,10 +66,11 @@
     </table>
     {% endif %}
     <div id="menu-new" class="buttons">
-        <a href="{{ url('olivemenus/menu-new') }}" class="btn submit add icon">{{ "New Menu"|t('olivemenus') }}</a>
+        <a href="{{ url('olivemenus/menu-new/' ~ objSite.handle) }}" class="btn submit add icon">{{ "New Menu"|t('olivemenus') }}</a>
     </div>
 {% endset %}
 {% js %}
     window.csrfTokenName = "{{ craft.app.config.general.csrfTokenName|e('js') }}";
     window.csrfTokenValue = "{{ craft.app.request.csrfToken|e('js') }}";
+	window.siteUrl = "{{ url() }}";
 {% endjs %}

@@ -61,6 +61,13 @@ class OlivemenusModel extends Model
 
     public $uid;
 
+     /**
+     * Site Id attribute
+     *
+     * @var int
+     */
+    public $site_id;
+
     // Public Methods
     // =========================================================================
 
@@ -78,6 +85,7 @@ class OlivemenusModel extends Model
     {
         return [
             [['id'], 'integer'],
+            [['site_id'], 'integer'],
             [['name', 'handle'], 'string'],
             [['name', 'handle'], 'required'],
             ['handle', 'validateHandle'],

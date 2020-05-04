@@ -36,14 +36,14 @@ class OlivemenuItemsService extends Component
 {
     // Public Methods
     // =========================================================================
-    public function getSectionsWithEntries() {
-        $sections = $this->getSections();
+    public function getSectionsWithEntries($site_id) {
+        $sections = $this->getSections($site_id);
 
         if ($sections) {
             foreach($sections as $handle => $values) {
                 if (!empty($sections[$handle])) {
                     foreach ($values as $index => $value) {
-                        $sections[$handle][$index]['entries'] = $this->getFirstEntriesBySection($value['handle']);
+                        $sections[$handle][$index]['entries'] = $this->getFirstEntriesBySection($value['handle'], $site_id);
                     }
                 }
             }
@@ -152,42 +152,47 @@ class OlivemenuItemsService extends Component
         return $localHTML;
     }
 
-    private function getSections() {
+    private function getSections($site_id) {
         $sections = [];
 
         $sections['single'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
             ->from(['{{%sections}}'])
+            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
+            ->where(['type' => 'single', 'dateDeleted'=>NULL, 'siteId' => $site_id])
             ->orderBy('name')
-            ->where(['type' => 'single', 'dateDeleted'=>NULL])
             ->all();
 
         $sections['structure'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
             ->from(['{{%sections}}'])
+            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
+            ->where(['type' => 'structure', 'dateDeleted'=>NULL, 'siteId' => $site_id])
             ->orderBy('name')
-            ->where(['type' => 'structure', 'dateDeleted'=>NULL])
             ->all();
 
         $sections['channel'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
             ->from(['{{%sections}}'])
+            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
+            ->where(['type' => 'channel', 'dateDeleted'=>NULL, 'siteId' => $site_id])
             ->orderBy('name')
-            ->where(['type' => 'channel', 'dateDeleted'=>NULL])
             ->all();
 
         return $sections;
     }
 
-    private function getEntriesBySection($handle) {
+    private function getEntriesBySection($handle, $site_id) {
         return Entry::find()
                     ->section($handle)
+                    ->siteId($site_id)
                     ->all();
     }
 
-    private function getFirstEntriesBySection($handle) {
+    private function getFirstEntriesBySection($handle, $site_id) {
         return Entry::find()
                     ->section($handle)
+                    ->siteId($site_id)
                     ->one();
     }
 

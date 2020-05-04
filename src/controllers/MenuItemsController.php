@@ -62,10 +62,20 @@ class MenuItemsController extends Controller
     public function actionEdit($menuId = null)
     {
         $this->view->registerAssetBundle(OlivemenuItemsAsset::class);
-        $data['menu'] = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
-        $data['sections'] = Olivemenus::$plugin->olivemenuItems->getSectionsWithEntries();
+        $menu = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
+        $data['menu'] = $menu;
+        $data['sections'] = Olivemenus::$plugin->olivemenuItems->getSectionsWithEntries($menu->site_id);
         $data['menuItemsMarkup'] = Olivemenus::$plugin->olivemenuItems->getMenuItemsAdminMarkup($menuId);
-        $data['categories'] = Craft::$app->categories->getAllGroups();
+        $data['categories'] = Craft::$app
+                                   ->categories
+                                   ->getAllGroups();
+        
+        $objSite = Craft::$app->getSites()->getSiteById($menu->site_id);
+        if (!$objSite) {
+            $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
+            $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        }
+        $data['objSite'] = $objSite;
         return $this->renderTemplate('olivemenus/_menu-items', $data);
     }
 

@@ -29,7 +29,7 @@ var menuList = $('#menu-list'),
                 // Add the CSRF Token
                 data[csrfTokenName] = csrfTokenValue;
 
-                $.post('olivemenus/delete-menu', data, null, 'json')
+                $.post(siteUrl +'/olivemenus/delete-menu', data, null, 'json')
                     .done(function( data ) {
                         if (data.success) {
                             Craft.cp.displayNotice(Craft.t('olivemenus', 'Menu successfully deleted.'));
