@@ -27,7 +27,6 @@ class m200228_124859_olivemenus_addSiteIdFieldToMenusTable extends Migration
 	 */
 	public function safeDown()
 	{
-		echo "m200228_124859_olivemenus_addSiteIdFieldToMenusTable cannot be reverted.\n";
-		return false;
+	    $this->dropColumn('{{%olivemenus}}', 'site_id');
 	}
 }
