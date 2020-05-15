@@ -18,7 +18,6 @@ class m200228_124859_olivemenus_addSiteIdFieldToMenusTable extends Migration
 	{
 		if (!$this->db->columnExists('{{%olivemenus}}', 'site_id')) {
 			$this->addColumn('{{%olivemenus}}', 'site_id', $this->integer(11)->after('handle'));
-			$this->update('{{%olivemenus}}', ['site_id' => Craft::$app->sites->primarySite->id]);
 		}
 	}
 
