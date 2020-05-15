@@ -10,10 +10,6 @@
 
 namespace olivestudio\olivemenus;
 
-use olivestudio\olivemenus\services\OlivemenusService as OlivemenusServiceService;
-use olivestudio\olivemenus\services\OlivemenusService;
-use olivestudio\olivemenus\services\OlivemenuItemsService;
-
 use Craft;
 use craft\base\Plugin;
 use craft\services\Plugins;
@@ -21,6 +17,8 @@ use craft\events\PluginEvent;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterUrlRulesEvent;
+use olivestudio\olivemenus\services\OlivemenusService;
+use olivestudio\olivemenus\services\OlivemenuItemsService;
 
 use yii\base\Event;
 
@@ -62,7 +60,7 @@ class Olivemenus extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '1.1.9';
+    public $schemaVersion = '1.1.10';
 
     // Public Methods
     // =========================================================================
@@ -92,28 +90,10 @@ class Olivemenus extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                //$event->rules['olivemenus'] = 'olivemenus/menu';
-                //$event->rules['olivemenus/menu-new'] = 'olivemenus/menu/menu-new';
-				$event->rules['POST olivemenus/delete-menu'] = 'olivemenus/menu/delete-menu';
-
-                $event->rules['olivemenus/<siteHandle:\w+>'] = [
-                    'pattern' => 'olivemenus/menu/<action:>/<siteHandle:\w+>',
-                    'route' => 'olivemenus/menu/<action>',
-                    'defaults' => [
-                        'siteHandle' => Craft::$app->getSites()->getPrimarySite()->handle,
-                        'action'     => 'index'
-
-                    ]
-                ];
-                $event->rules['olivemenus/menu-new/<siteHandle:\w+>'] = [
-                    'pattern' => 'olivemenus/menu/<action:>/<siteHandle:\w+>',
-                    'route' => 'olivemenus/menu/<action>',
-                    'defaults' => [
-                        'siteHandle' => Craft::$app->getSites()->getPrimarySite()->handle,
-                        'action'     => 'menu-new'
-                    ]
-                ];
-
+                $event->rules['olivemenus'] = 'olivemenus/menu';
+                $event->rules['olivemenus/<siteHandle:\w+>'] = 'olivemenus/menu';
+                $event->rules['olivemenus/menu-new/<siteHandle:\w+>'] = 'olivemenus/menu/menu-new';
+                $event->rules['olivemenus/delete-menu'] = 'olivemenus/menu/delete-menu';
                 $event->rules['olivemenus/delete-menu/<menuId:\d+>'] = 'olivemenus/menu/delete-menu';
                 $event->rules['olivemenus/menu-edit/<menuId:\d+>'] = 'olivemenus/menu/menu-edit';
                 $event->rules['olivemenus/menu-edit/'] = 'olivemenus/menu';
