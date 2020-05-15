@@ -58,8 +58,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Only version bump
 
 ## 1.1.9 - 2020-05-15
+### Fixed
+- Migrations are not run when updating the plugin #42
+
+## 1.1.10 - 2020-05-15
 ### Fixed 
-- run migrations automatically #42
 - migration/down for multi-site
 - set default site ID for multi-site migrations #44
 - fix URL routing for multi-site (index and create) #43

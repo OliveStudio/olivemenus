@@ -7,7 +7,7 @@ use craft\db\Migration;
 
 /**
  * Migration: Set site ID for existing menus
- * @since 1.1.8
+ * @since 1.1.10
  */
 class m200515_124130_olivemenus_fixBrokenMultisiteMigrations extends Migration
 {
