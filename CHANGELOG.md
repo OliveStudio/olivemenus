@@ -53,3 +53,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 1.1.7 - 2020-02-28
 ### Added multisite option
+
+## 1.1.9 - 2020-05-15
+### Migrations are not run when updating the plugin
+- Migrations are not run when updating the plugin #42
+
