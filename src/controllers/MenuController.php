@@ -59,7 +59,7 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionIndex($siteHandle)
+    public function actionIndex($siteHandle='')
     {
         $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
         if (!$objSite) {
@@ -79,7 +79,7 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionMenuNew($siteHandle)
+    public function actionMenuNew($siteHandle='')
     {
         $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
         if (!$objSite) {

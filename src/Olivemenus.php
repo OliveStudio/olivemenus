@@ -62,7 +62,7 @@ class Olivemenus extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '1.1.5';
+    public $schemaVersion = '1.1.9';
 
     // Public Methods
     // =========================================================================
@@ -92,9 +92,28 @@ class Olivemenus extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['olivemenus'] = 'olivemenus/menu';
-                $event->rules['olivemenus/menu-new'] = 'olivemenus/menu/menu-new';
-                $event->rules['olivemenus/delete-menu'] = 'olivemenus/menu/delete-menu';
+                //$event->rules['olivemenus'] = 'olivemenus/menu';
+                //$event->rules['olivemenus/menu-new'] = 'olivemenus/menu/menu-new';
+				$event->rules['POST olivemenus/delete-menu'] = 'olivemenus/menu/delete-menu';
+
+                $event->rules['olivemenus/<siteHandle:\w+>'] = [
+                    'pattern' => 'olivemenus/menu/<action:>/<siteHandle:\w+>',
+                    'route' => 'olivemenus/menu/<action>',
+                    'defaults' => [
+                        'siteHandle' => Craft::$app->getSites()->getPrimarySite()->handle,
+                        'action'     => 'index'
+
+                    ]
+                ];
+                $event->rules['olivemenus/menu-new/<siteHandle:\w+>'] = [
+                    'pattern' => 'olivemenus/menu/<action:>/<siteHandle:\w+>',
+                    'route' => 'olivemenus/menu/<action>',
+                    'defaults' => [
+                        'siteHandle' => Craft::$app->getSites()->getPrimarySite()->handle,
+                        'action'     => 'menu-new'
+                    ]
+                ];
+
                 $event->rules['olivemenus/delete-menu/<menuId:\d+>'] = 'olivemenus/menu/delete-menu';
                 $event->rules['olivemenus/menu-edit/<menuId:\d+>'] = 'olivemenus/menu/menu-edit';
                 $event->rules['olivemenus/menu-edit/'] = 'olivemenus/menu';
