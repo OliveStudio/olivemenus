@@ -2,6 +2,7 @@
 
 namespace olivestudio\olivemenus\migrations;
 
+use Craft;
 use craft\db\Migration;
 
 /**
@@ -15,10 +16,9 @@ class m200228_124859_olivemenus_addSiteIdFieldToMenusTable extends Migration
 	 */
 	public function safeUp()
 	{
-		// Place migration code here...
-		
 		if (!$this->db->columnExists('{{%olivemenus}}', 'site_id')) {
 			$this->addColumn('{{%olivemenus}}', 'site_id', $this->integer(11)->after('handle'));
+			$this->update('{{%olivemenus}}', ['site_id' => Craft::$app->sites->primarySite->id]);
 		}
 	}
 
