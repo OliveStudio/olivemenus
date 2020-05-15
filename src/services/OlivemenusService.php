@@ -10,14 +10,13 @@
 
 namespace olivestudio\olivemenus\services;
 
-use olivestudio\olivemenus\models\OlivemenusModel;
-use olivestudio\olivemenus\Olivemenus;
-use olivestudio\olivemenus\records\OlivemenusRecord;
-
 use Craft;
 use craft\base\Component;
 use craft\elements\Entry;
 use craft\elements\Category;
+use olivestudio\olivemenus\models\OlivemenusModel;
+use olivestudio\olivemenus\Olivemenus;
+use olivestudio\olivemenus\records\OlivemenusRecord;
 
 /**
  * OlivemenusService Service
@@ -36,7 +35,7 @@ class OlivemenusService extends Component
 {
     // Public Methods
     // =========================================================================
-    
+
     public function getAllMenus($siteId) {
         return OlivemenusRecord::find()
                     ->where(['site_id' => $siteId])
@@ -98,56 +97,64 @@ class OlivemenusService extends Component
         return $save;
     }
 
-    // Frotend Methods
+    // Front-end Methods
     // =========================================================================
     public function getMenuHTML($handle = false, $config ) {
-        if ($handle) {
-            $localHTML = '';
-
-            $menu = $this->getMenuByHandle($handle);
-
-            if ($menu !== NULL) {
-                $menu_id = '';
-                $menu_class = '';
-                $ul_class = '';
-                $menu_items = Olivemenus::$plugin->olivemenuItems->getMenuItems($menu->id);
-                
-                if (!empty($config)) {
-                    if (isset($config['menu-id'])) {
-                        $menu_id = ' id="' .$config['menu-id']. '"';
-                    }
-                    if (isset($config['menu-class'])) {
-                        $menu_class .= ' ' . $config['menu-class'];
-                    }
-                    if (isset($config['ul-class'])) {
-                        $ul_class = $config['ul-class'];
-                    }
-                }
-
-                $localHTML .= '<div' .$menu_id. ' class="menu' .$menu_class. '">';
-                    $localHTML .= '<ul class="' . $ul_class . '">';
-                        foreach ( $menu_items as $menu_item ) {
-                            $localHTML .= $this->getMenuItemHTML($menu_item, $config);
-                        }
-                    $localHTML .= '</ul>';
-                $localHTML .= '</div>';
-            } else {
-                $localHTML .= '<p>' . Craft::t('olivemenus', 'A menu with this handle does not exit!') . '</p>';
-            }
-            echo $localHTML;
+        if ($handle === false || ($menu = $this->getMenuByHandle($handle)) === null) {
+            echo '<p>' . Craft::t('olivemenus', 'A menu with this handle does not exit!') . '</p>';
+            return;
         }
+
+        $menu_id = '';
+        $menu_class = '';
+        $ul_class = '';
+        $withoutContainer = false;
+        $withoutUl = false;
+
+        if (!empty($config)) {
+            if (isset($config['menu-id'])) {
+                $menu_id = ' id="' .$config['menu-id']. '"';
+            }
+            if (isset($config['menu-class'])) {
+                $menu_class .= ' ' . $config['menu-class'];
+            }
+            if (isset($config['ul-class'])) {
+                $ul_class = $config['ul-class'];
+            }
+            if (isset($config['without-container'])) {
+                $withoutContainer = $config['without-container'];
+            }
+            if (isset($config['without-ul'])) {
+                $withoutUl = $config['without-ul'];
+            }
+        }
+
+        $localHTML = '';
+
+        $menu_items = Olivemenus::$plugin->olivemenuItems->getMenuItems($menu->id);
+        foreach ($menu_items as $menu_item) {
+            $localHTML .= $this->getMenuItemHTML($menu_item, $config);
+        }
+
+        if ($withoutUl !== true) {
+            $localHTML = '<ul class="' . $ul_class . '">' . $localHTML . '</ul>';
+        }
+
+        if ($withoutContainer !== true) {
+            $localHTML = '<div' . $menu_id . ' class="menu' . $menu_class . '">' . $localHTML . '</div>';
+        }
+
+        echo $localHTML;
     }
 
     private function getMenuItemHTML($menu_item, $config) {
         $menu_item_url = '';
-        $menu_class = '';
         $ul_class = '';
         $menu_item_class = 'menu-item';
-        $entry_id = $menu_item['entry_id'];
         $custom_url = $menu_item['custom_url'];
         $class = $menu_item['class'];
         $class_parent = $menu_item['class_parent'];
-        
+
         $data_attributes = '';
         $data_json = $menu_item['data_json'];
 
@@ -188,7 +195,7 @@ class OlivemenusService extends Component
                 $data_item = explode(':', $data_item);
                 $data_attributes .= trim($data_item[0]) . '="' .trim($data_item[1]). '"';
             }
-            
+
         }
 
         //extract target option
@@ -203,7 +210,7 @@ class OlivemenusService extends Component
                 $menu_item_class .= ' current-menu-item';
             }
         }
-        
+
         $localHTML = '';
         $localHTML .= '<li id="menu-item-' .$menu_item['id']. '" class="' .$menu_item_class. '">';
 
