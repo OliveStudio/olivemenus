@@ -19,10 +19,6 @@
         {
             "name": "Olive Studio",
             "homepage": "https://www.olivestudio.net/"
-        },
-        {
-            "name": "NTH Media",
-            "homepage": "https://nthmedia.nl"
         }
     ],
     "require": {
