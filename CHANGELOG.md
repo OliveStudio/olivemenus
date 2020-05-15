@@ -53,3 +53,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 1.1.7 - 2020-02-28
 ### Added multisite option
+
+## 1.1.8 - 2020-05-04
+### Only version bump
+
+## 1.1.9 - 2020-05-15
+### Fixed 
+- run migrations automatically #42
+- migration/down for multi-site
+- set default site ID for multi-site migrations #44
+- fix URL routing for multi-site (index and create) #43

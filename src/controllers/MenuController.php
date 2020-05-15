@@ -59,8 +59,10 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionIndex($siteHandle)
+    public function actionIndex($siteHandle = null)
     {
+        $siteHandle = $siteHandle ?? Craft::$app->getSites()->currentSite->handle;
+
         $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
         if (!$objSite) {
             $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
