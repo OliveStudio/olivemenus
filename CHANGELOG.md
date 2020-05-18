@@ -66,3 +66,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - migration/down for multi-site
 - set default site ID for multi-site migrations #44
 - fix URL routing for multi-site (index and create) #43
+
+## 1.2.0 - 2020-05-18
+### Added 
+- extra config options for HTML output: without-container and without-ul
