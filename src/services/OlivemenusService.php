@@ -101,7 +101,7 @@ class OlivemenusService extends Component
     // =========================================================================
     public function getMenuHTML($handle = false, $config ) {
         if ($handle === false || ($menu = $this->getMenuByHandle($handle)) === null) {
-            echo '<p>' . Craft::t('olivemenus', 'A menu with this handle does not exit!') . '</p>';
+            echo '<p>' . Craft::t('olivemenus', 'A menu with this handle does not exist!') . '</p>';
             return;
         }
 
