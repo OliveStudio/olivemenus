@@ -1,0 +1,293 @@
+/**
+ * Olivemenus plugin for Craft CMS
+ *
+ * MenuItems Field CSS
+ *
+ * @author    Olivestudio
+ * @copyright Copyright (c) 2018 Olivestudio
+ * @link      http://www.olivestudio.net/
+ * @package   Olivemenus
+ * @since     1.0.0
+ */
+
+ #menu-items-sidebar {
+	width:24%;
+	float:left;
+}
+#menu-items-sidebar > .os-accordion {
+	border-bottom:1px solid #e3e5e8;    
+}
+#menu-items-sidebar .ui-tabs-panel form > .field,
+#menu-items-sidebar .ui-tabs-panel form > .fields,
+#menu-items-sidebar .fields-custom {
+	margin-bottom:20px;
+}
+#menu-items-sidebar .field.checkboxfield {
+	margin:0 0 8px 0;
+}
+#menu-items-sidebar .field.checkboxfield label {
+    display:block;
+}
+#menu-items-sidebar .accordion .ui-accordion-header {
+	border:1px solid #e3e5e8;
+	height:20px;
+	line-height:20px;
+	padding:10px 10px 10px 14px;
+	cursor:pointer;
+    background:#fafafa;
+    color: #29323d;
+	position:relative;
+	color:#555;
+	margin:0;
+	border-bottom:0;
+}
+#menu-items-sidebar .accordion .ui-accordion-header:last-child {
+}
+#menu-items-sidebar .accordion .ui-accordion-header:after {
+	 content: "▼";
+	 font-family: "Craft";
+	 height:40px;
+	 width:40px;
+	 text-align:center;
+	 position:absolute;
+	 top:0;
+	 right:0;
+	 line-height:40px;
+	 font-size:20px;
+	 color:#29323d;
+}
+#menu-items-sidebar .accordion .ui-accordion-header:hover,
+#menu-items-sidebar .accordion .ui-accordion-header.ui-state-active {
+	background:#737f8c;
+    border-color:#737f8c;
+    color:#fff;
+    outline:none;
+}
+#menu-items-sidebar .accordion .ui-accordion-header:hover:after,
+#menu-items-sidebar .accordion .ui-accordion-header.ui-state-active:after {
+	color:#fff;
+}
+#menu-items-sidebar .accordion .ui-accordion-header.ui-state-active:after {
+    transform:rotate(180deg);
+}
+#menu-items-sidebar .accordion .ui-accordion-content {
+	border:1px solid #e3e5e8;
+    border-top:none;
+	border-bottom:0;
+	padding:15px 14px 14px 14px;
+}
+#menu-items-sidebar .accordion .ui-accordion-content:last-child {
+	border-top:1px solid #e3e5e8;
+}
+#menu-items-sidebar .accordion .accordion {
+	margin-bottom:20px;
+}
+#menu-items-sidebar .accordion .accordion .ui-accordion-header {
+	border:none;
+	padding:5px 0 5px 0;
+	font-size:13px;
+	border-bottom:1px solid #e3e5e8;
+	background:none;
+    color:#29323d;
+}
+#menu-items-sidebar .accordion .accordion .ui-accordion-header:hover,
+#menu-items-sidebar .accordion .accordion .ui-accordion-header.ui-state-active {
+    border-bottom:1px solid #29323d;  
+}
+#menu-items-sidebar .accordion .accordion .ui-accordion-header:after {
+	width:30px;
+	height:30px;
+	line-height:30px;
+	font-size:14px;
+    color:#29323d;
+}
+#menu-items-sidebar .accordion .accordion .ui-accordion-content {
+	padding:14px 0;
+	border:none;
+}
+#menu-items-sidebar .accordion .accordion .ui-accordion-content .ui-tabs {
+	margin-bottom:0;
+}
+#menu-items-sidebar .ui-tabs .ui-tabs-nav {
+	border-bottom:1px solid #e3e5e8;
+	padding-bottom:10px;
+	margin-bottom:10px;
+	overflow:hidden;
+}
+#menu-items-sidebar .ui-tabs .ui-tabs-nav li {
+	float:left;
+	margin-right:10px;
+}
+#menu-items-sidebar .ui-tabs .ui-tabs-nav li a {
+	color:#555;
+}
+#menu-items-sidebar .ui-tabs .ui-tabs-nav li:hover a,
+#menu-items-sidebar .ui-tabs .ui-tabs-nav li.ui-state-active a {
+	color:#da5a47;
+	text-decoration:none;
+}
+#menu-items-sidebar .search-list {
+	margin-bottom:20px;
+}
+#menu-items-sidebar .search-list.active {
+	padding-top:20px;
+}
+#menu-items-sidebar .search-list li {
+	display:none;
+}
+#menu-items-sidebar .templating {
+    margin-top:20px;
+}
+#menu-items-sidebar .templating .heading {
+    padding:10px 10px 10px 14px;
+    background:#737f8c;
+    color:#fff;
+}
+#menu-items-sidebar .templating .content {
+    padding:10px;
+    background:#fafafa;
+    border:1px solid #e3e5e8;
+    border-top:none;
+}
+#menu-items-sidebar .templating .content pre {
+	white-space: pre-wrap;
+	white-space: -moz-pre-wrap !important;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	word-wrap: break-word; 
+    padding:10px;
+    background:#f2f2f2;
+    border:1px solid #eaeaea;
+}
+#menu-items-sidebar .btn:hover,
+#menu-items-sidebar .btn:focus,
+#menu-items-sidebar .btn:active,
+#menu-items .btn:hover,
+#menu-items .btn:focus,
+#menu-items .btn:active {
+    background:#737f8c;
+    color:#fff !important;
+}
+#menu-items {
+	box-sizing:border-box;
+	width:76%;
+	float:left;
+	padding-left:40px;
+}
+#menu-items .sortable {
+	padding-left:0;
+	list-style:none;
+}
+#menu-items .sortable li {
+    width:380px;
+	margin-bottom:14px;
+}
+#menu-items .sortable li.ui-sortable-helper {
+    margin-top:14px;
+}
+#menu-items .sortable ol {
+	list-style:none;
+	padding-left:20px;
+    border-left:1px dotted #cacaca;
+}
+#menu-items .sortable li > .ui-sortable-handle {
+    margin-bottom:14px;
+}
+#menu-items .sortable li .item-heading {
+	border:1px solid #e3e5e8;
+	height:20px;
+	line-height:20px;
+	padding:10px 10px 10px 14px;
+    background:#fafafa;
+    color: #29323d;
+	position:relative;
+	color:#555;
+    font-size:13px;
+    font-weight:700;
+	margin:0;
+    cursor:move;
+}
+#menu-items .sortable li > .ui-sortable-handle:hover > .item-heading,
+#menu-items .sortable li.active > .ui-sortable-handle > .item-heading {
+    background:#737f8c;
+    border-color:#737f8c;
+    color:#fff;
+}
+#menu-items .sortable li .item-heading .menu-title {
+    position:relative;
+    padding-left:30px;
+    display:inline-block;
+    max-width:70%;
+    height:20px;
+    overflow:hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+#menu-items .sortable li .item-heading .settings-toggle {
+    width:30px;
+    height:40px;
+    position:absolute;
+    top:0;
+    left:0;
+    display:block;
+    cursor:pointer;
+    z-index:10;
+}
+#menu-items .sortable li .item-heading .settings-toggle:before {
+	 content: "▼";
+	 font-family: "Craft";
+	 height:40px;
+	 width:40px;
+	 text-align:center;
+	 position:absolute;
+	 top:0;
+	 left:0;
+	 line-height:40px;
+	 font-size:20px;
+	 color:#29323d;
+}
+#menu-items .sortable li.active > .ui-sortable-handle > .item-heading .settings-toggle:before {
+    transform:rotate(180deg);
+}
+#menu-items .sortable li > .ui-sortable-handle:hover > .item-heading .settings-toggle:before,
+#menu-items .sortable li.active > .ui-sortable-handle > .item-heading .settings-toggle:before {
+    color:#fff;
+}
+#menu-items .sortable li .item-heading .delete-menu {
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index:20px;
+    text-align:right;
+    font-size:11px;
+    font-weight:400;
+    color:#29323d;
+}
+#menu-items .sortable li .item-content {
+    max-height:0;
+    transition:200ms linear all;
+    overflow:hidden;
+}
+#menu-items .sortable li.active > .ui-sortable-handle > .item-content {
+    max-height:500px;
+}
+#menu-items .sortable li .item-content .inner {
+    padding:10px;
+    border:1px solid #e3e5e8;
+    border-top:none;
+}
+#menu-items .sortable li .item-content .inner .field:last-child {
+    margin-bottom:0;
+}
+#menu-items .sortable li .item-content .inner a {
+    color:#b9bfc6;
+    text-decoration:underline;
+}
+#menu-items .sortable .placeholder {
+	background:#fafafa;
+	border:1px solid #eaeaea;
+}
+
+.d-flex {
+	display: flex;
+}

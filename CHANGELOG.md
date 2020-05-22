@@ -70,3 +70,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 1.2.0 - 2020-05-18
 ### Added 
 - extra config options for HTML output: without-container and without-ul
+
+## 1.2.1 - 2020-05-20
+### Fixed
+- Added "site_id" to the install migration
+
