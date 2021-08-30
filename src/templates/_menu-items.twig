@@ -292,6 +292,17 @@
 					<pre>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</pre>
 					<p>{{ "Optionally you can add an array of settings to the call, to set extra configurations for the menu:"|t('olivemenus') }}</p>
 					<pre>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}',{ 'menu-id': 'main-menu' }) }}{% endverbatim %}</pre>
+					<p>{{ "This is the full list of extra configurations with the default values:"|t('olivemenus') }}</p>
+					<pre>{% verbatim %}
+'menu-id': '',
+'menu-class': '',
+'ul-class': '',
+'without-container': false,
+'without-ul': false,
+'li-class': '',
+'link-class': '',
+'sub-menu-ul-class': ''
+					{% endverbatim %}</pre>
 				</div>
 			</div>
 			<div class="templating">
