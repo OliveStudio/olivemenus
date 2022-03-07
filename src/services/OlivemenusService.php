@@ -250,4 +250,21 @@ class OlivemenusService extends Component
             return str_replace(array_keys($environmentVariables), array_values($environmentVariables), $str);
         }
     }
+
+		/**
+		 * getMenuData
+		 * Gets the menu data from olivemenus as a data instead of HTML.
+		 * This way you can do your own HTML etc in Twig if you want to.
+		 *
+		 * @param  String $handle The handle of the menu item.
+		 * @return Mixed The menu data as an array or a String warning that the menu doesn't exist.
+		 */
+		public function getMenuData($handle) {
+			if ($handle === false || ($menu = $this->getMenuByHandle($handle)) === null) {
+				echo '<p>' . Craft::t('olivemenus', 'A menu with this handle does not exist!') . '</p>';
+				return;
+			}
+
+			return Olivemenus::$plugin->olivemenuItems->getMenuItems($menu->id);
+		}
 }

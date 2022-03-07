@@ -292,6 +292,8 @@
 					<pre>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</pre>
 					<p>{{ "Optionally you can add an array of settings to the call, to set extra configurations for the menu:"|t('olivemenus') }}</p>
 					<pre>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}',{ 'menu-id': 'main-menu' }) }}{% endverbatim %}</pre>
+					<p>{{ "Use this code to get only the data from this menu in your templates:"|t('olivemenus') }}</p>
+					<pre>{% verbatim %}{{ craft.olivemenus.getMenuData('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</pre>
 				</div>
 			</div>
 			<div class="templating">

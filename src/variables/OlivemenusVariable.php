@@ -54,4 +54,21 @@ class OlivemenusVariable
             return Olivemenus::$plugin->olivemenus->getMenuHTML($handle, $config);
         }
     }
+
+		/**
+		 * From any Twig template, call it like this:
+		 *
+		 *     {{ craft.olivemenus.getMenuData(menuHandle) }}
+		 *
+		 * @param String $handle The handle of the menu you want the data for.
+		 *
+		 * @return Mixed The data of the menu you wrote or a string with a notice.
+		 */
+
+		public function getMenuData($handle)
+		{
+			if ($handle != '') {
+				return Olivemenus::$plugin->olivemenus->getMenuData($handle);
+			}
+		}
 }
