@@ -157,24 +157,24 @@ class OlivemenuItemsService extends Component
 
         $sections['single'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
-            ->from(['{{%sections}}'])
-            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
+            ->from(['sections' => '{{%sections}}'])
+            ->leftJoin(['sections_sites' => '{{%sections_sites}}'], '[[sections_sites.sectionId]] = [[sections.id]]')
             ->where(['type' => 'single', 'dateDeleted'=>NULL, 'siteId' => $site_id])
             ->orderBy('name')
             ->all();
 
         $sections['structure'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
-            ->from(['{{%sections}}'])
-            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
+            ->from(['sections' => '{{%sections}}'])
+            ->leftJoin(['sections_sites' => '{{%sections_sites}}'], '[[sections_sites.sectionId]] = [[sections.id]]')
             ->where(['type' => 'structure', 'dateDeleted'=>NULL, 'siteId' => $site_id])
             ->orderBy('name')
             ->all();
 
         $sections['channel'] = (new \craft\db\Query())
             ->select(["name AS name", "handle AS handle"])
-            ->from(['{{%sections}}'])
-            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
+            ->from(['sections' => '{{%sections}}'])
+            ->leftJoin(['sections_sites' => '{{%sections_sites}}'], '[[sections_sites.sectionId]] = [[sections.id]]')
             ->where(['type' => 'channel', 'dateDeleted'=>NULL, 'siteId' => $site_id])
             ->orderBy('name')
             ->all();
