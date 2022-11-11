@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -48,7 +48,7 @@ class MenuItemsController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected array|bool|int $allowAnonymous = ['edit', 'save-menu-items'];
+    protected $allowAnonymous = ['edit', 'save-menu-items'];
 
     // Public Methods
     // =========================================================================
@@ -59,7 +59,7 @@ class MenuItemsController extends Controller
      *
      * @return mixed
      */
-    public function actionEdit(int $menuId = null): mixed
+    public function actionEdit($menuId = null)
     {
         $this->view->registerAssetBundle(OlivemenuItemsAsset::class);
         $menu = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
@@ -83,9 +83,9 @@ class MenuItemsController extends Controller
      * Handle a request going to our plugin's actionSave URL,
      * e.g.: actions/olivemenus/menu-items/save-menu-items
      *
-     * @return void
+     * @return mixed
      */
-    public function actionSaveMenuItems(): void
+    public function actionSaveMenuItems()
     {
         $this->requirePostRequest();
         $intMenuId = Craft::$app->request->getBodyParams()['menu-id'];

@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -42,37 +42,33 @@ class OlivemenusVariable
      *
      *     {{ craft.olivemenus.getMenuHTML(twigValue) }}
      *
-     * @param string $handle
+     * @param null $handle
      * @param array $config
      *
      * @return string
      */
 
-    public function getMenuHTML(string $handle, $config = array())
+    public function getMenuHTML($handle, $config = array())
     {
         if ($handle != '') {
             return Olivemenus::$plugin->olivemenus->getMenuHTML($handle, $config);
         }
-
-        return "";
     }
 
-    /**
-     * From any Twig template, call it like this:
-     *
-     *     {{ craft.olivemenus.getMenuData(menuHandle) }}
-     *
-     * @param String $handle The handle of the menu you want the data for.
-     *
-     * @return Mixed The data of the menu you wrote or a string with a notice.
-     */
+		/**
+		 * From any Twig template, call it like this:
+		 *
+		 *     {{ craft.olivemenus.getMenuData(menuHandle) }}
+		 *
+		 * @param String $handle The handle of the menu you want the data for.
+		 *
+		 * @return Mixed The data of the menu you wrote or a string with a notice.
+		 */
 
-    public function getMenuData(string $handle): mixed
-    {
-        if ($handle != '') {
-            return Olivemenus::$plugin->olivemenus->getMenuData($handle);
-        }
-
-        return "";
-    }
+		public function getMenuData($handle)
+		{
+			if ($handle != '') {
+				return Olivemenus::$plugin->olivemenus->getMenuData($handle);
+			}
+		}
 }

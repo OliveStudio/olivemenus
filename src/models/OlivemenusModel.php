@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -39,34 +39,34 @@ class OlivemenusModel extends Model
      *
      * @var int
      */
-    public $id = 0;
+    public $id;
 
     /**
      * Name attribute
      *
      * @var string
      */
-    public string $name = '';
+    public $name;
 
      /**
      * Handle attribute
      *
      * @var string
      */
-    public string $handle = '';
+    public $handle;
 
-    public mixed $dateCreated = null;
+    public $dateCreated;
 
-    public mixed $dateUpdated = null;
+    public $dateUpdated;
 
-    public string $uid = '';
+    public $uid;
 
      /**
      * Site Id attribute
      *
      * @var int
      */
-    public int $site_id = 0;
+    public $site_id;
 
     // Public Methods
     // =========================================================================
@@ -81,7 +81,7 @@ class OlivemenusModel extends Model
      *
      * @return array
      */
-    public function rules(): array
+    public function rules()
     {
         return [
             [['id'], 'integer'],
@@ -93,8 +93,7 @@ class OlivemenusModel extends Model
         ];
     }
 
-    public function validateHandle(): void 
-    {
+    public function validateHandle() {
 
         $validator = new HandleValidator();
         $validator->validateAttribute($this, 'handle');
@@ -105,8 +104,7 @@ class OlivemenusModel extends Model
 
     }
     
-    public function validateName(): void 
-    {
+    public function validateName() {
 
         $validator = new StringValidator();
         $validator->validateAttribute($this, 'name');

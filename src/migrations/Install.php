@@ -18,7 +18,7 @@ class Install extends Migration
     /**
      * @var string The database driver to use
      */
-    public string $driver;
+    public $driver;
 
     // Public Methods
     // =========================================================================
@@ -33,7 +33,7 @@ class Install extends Migration
      * @return boolean return a false value to indicate the migration fails
      * and should not proceed further. All other return values mean the migration succeeds.
      */
-    public function safeUp(): bool
+    public function safeUp()
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         if ($this->createTables()) {
@@ -57,7 +57,7 @@ class Install extends Migration
      * @return boolean return a false value to indicate the migration fails
      * and should not proceed further. All other return values mean the migration succeeds.
      */
-    public function safeDown(): bool
+    public function safeDown()
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         $this->removeTables();
@@ -73,7 +73,7 @@ class Install extends Migration
      *
      * @return bool
      */
-    protected function createTables(): bool
+    protected function createTables()
     {
         $tablesCreated = false;
 
@@ -127,7 +127,7 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function createIndexes(): void
+    protected function createIndexes()
     {
         // olivemenus table
         $this->createIndex(
@@ -164,7 +164,7 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function addForeignKeys(): void
+    protected function addForeignKeys()
     {
         $this->addForeignKey(
             $this->db->getForeignKeyName('{{%olivemenus_items}}', 'menu_id'),
@@ -182,7 +182,7 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function insertDefaultData(): void
+    protected function insertDefaultData()
     {
     }
 
@@ -191,7 +191,7 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function removeTables(): void
+    protected function removeTables()
     {
         $this->dropTableIfExists('{{%olivemenus_items}}');
         $this->dropTableIfExists('{{%olivemenus}}');

@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -36,8 +36,7 @@ class OlivemenuItemsService extends Component
 {
     // Public Methods
     // =========================================================================
-    public function getSectionsWithEntries(int $site_id): mixed 
-    {
+    public function getSectionsWithEntries($site_id) {
         $sections = $this->getSections($site_id);
 
         if ($sections) {
@@ -53,16 +52,14 @@ class OlivemenuItemsService extends Component
         return $sections;
     }
 
-    public function getMenuItem(int $id): mixed
-    {
+    public function getMenuItem($id) {
         $record = OlivemenusItemsRecord::findOne([
             'id' => $id
         ]);
         return new OlivemenusItemsModel($record->getAttributes());
     }
 
-    public function saveMenuItem(OlivemenusItemsModel $model): int
-    {
+    public function saveMenuItem(OlivemenusItemsModel $model) {
         $record = false;
         if (isset($model->id)) {
             $record = OlivemenusItemsRecord::findOne( [
@@ -92,8 +89,7 @@ class OlivemenuItemsService extends Component
         return $record->id;
     }
 
-    public function deleteMenuItem(int $id): mixed
-    {
+    public function deleteMenuItem($id) {
         $record = OlivemenusItemsRecord::findOne([
             'id' => $id
         ]);
@@ -103,12 +99,9 @@ class OlivemenuItemsService extends Component
                 return 1;
             };
         }
-
-        return 0;
     }
 
-    public function deleteItemsByMenuId($record): mixed 
-    {
+    public function deleteItemsByMenuId($record) {
         $records = OlivemenusItemsRecord::findAll([
             'menu_id' => $record->id,
         ]);
@@ -116,11 +109,10 @@ class OlivemenuItemsService extends Component
         foreach ($records as $record) {
             $record->delete();
         }
-        return null;
+        return;
     }
 
-    public function getMenuItems(int $menuId): mixed
-    {
+    public function getMenuItems($menuId) {
         $arrMenuItems = [];
 
         $menuItems = OlivemenusItemsRecord::find()
@@ -148,8 +140,7 @@ class OlivemenuItemsService extends Component
         return $arrMenuItems;
     }
 
-    public function getMenuItemsAdminMarkup(int $menuId): mixed 
-    {
+    public function getMenuItemsAdminMarkup($menuId) {
         $localHTML = '';
         $arrMenuItems = $this->getMenuItems($menuId);
 
@@ -161,8 +152,7 @@ class OlivemenuItemsService extends Component
         return $localHTML;
     }
 
-    private function getSections(int $site_id): mixed 
-    {
+    private function getSections($site_id) {
         $sections = [];
 
         $sections['single'] = (new \craft\db\Query())
@@ -192,24 +182,21 @@ class OlivemenuItemsService extends Component
         return $sections;
     }
 
-    private function getEntriesBySection(string $handle, int $site_id): mixed 
-    {
+    private function getEntriesBySection($handle, $site_id) {
         return Entry::find()
                     ->section($handle)
                     ->siteId($site_id)
                     ->all();
     }
 
-    private function getFirstEntriesBySection(string $handle,int $site_id): mixed
-    {
+    private function getFirstEntriesBySection($handle, $site_id) {
         return Entry::find()
                     ->section($handle)
                     ->siteId($site_id)
                     ->one();
     }
 
-    private function sortMenuItemsByParents(array $arrMenuItems): array 
-    {
+    private function sortMenuItemsByParents($arrMenuItems) {
         $counter = 0;
         $arrMenuItemsSorted = [];
 
@@ -230,8 +217,7 @@ class OlivemenuItemsService extends Component
         return $arrMenuItemsSorted;
     }
     
-    private function addChildToParent(mixed $arrMenuItems,mixed $menuItem): mixed 
-    {
+    private function addChildToParent($arrMenuItems, $menuItem) {
         $parent_id = $menuItem['id'];
 
         if ($arrMenuItems) {
@@ -245,8 +231,7 @@ class OlivemenuItemsService extends Component
         return $menuItem;
     }
 
-    private function getItemAdminMarkup(mixed $menuItem): string
-    {
+    private function getItemAdminMarkup($menuItem) {
         $localHTML = '';
 
         $entry = Entry::find()
@@ -278,7 +263,7 @@ class OlivemenuItemsService extends Component
                                 $localHTML .= '<input class="text nicetext fullwidth" type="text" name="item-name" value="' .$menuItem['name']. '" />';
                             $localHTML .= '</div>';
                         $localHTML .= '</div>';
-                        if (!$menuItem['entry_id']) {
+                        if ($menuItem['entry_id'] == '') {
                             $localHTML .= '<div class="row field">';
                                 $localHTML .= '<div class="heading">';
                                     $localHTML .= '<label>' . Craft::t('olivemenus', 'Custom URL') . ':</label>';

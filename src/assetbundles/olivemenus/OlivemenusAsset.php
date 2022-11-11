@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -40,7 +40,7 @@ class OlivemenusAsset extends AssetBundle
     /**
      * Initializes the bundle.
      */
-    public function init(): void
+    public function init()
     {
         // define the path that your publishable resources live
         $this->sourcePath = "@olivestudio/olivemenus/assetbundles/olivemenus/dist";

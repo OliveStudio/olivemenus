@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -48,7 +48,7 @@ class OlivemenusRecord extends ActiveRecord
      *
      * @return string the table name
      */
-    public static function tableName(): string
+    public static function tableName()
     {
         return '{{%olivemenus}}';
     }

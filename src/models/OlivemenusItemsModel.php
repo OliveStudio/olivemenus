@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -37,83 +37,83 @@ class OlivemenusItemsModel extends Model
      *
      * @var int
      */
-    public int $id = 0;
+    public $id;
 
     /**
      * Menu_id attribute
      *
      * @var int
      */
-    public int $menu_id = 0;
+    public $menu_id;
 
     /**
      * Parent_id attribute
      *
      * @var int
      */
-    public int $parent_id = 0;
+    public $parent_id;
 
     /**
      * Item_order attribute
      *
      * @var int
      */
-    public int $item_order = 0;
+    public $item_order;
 
     /**
      * Name attribute
      *
      * @var string
      */
-    public string $name = '';
+    public $name;
 
     /**
      * Entry_id attribute
      *
      * @var int
      */
-    public int $entry_id = 0;
+    public $entry_id;
 
      /**
      * Custom_url attribute
      *
      * @var string
      */
-    public string $custom_url = '';
+    public $custom_url;
 
     /**
      * Class attribute
      *
      * @var string
      */
-    public string $class = '';
+    public $class;
 
     /**
      * Class_parent attribute
      *
      * @var string
      */
-    public string $class_parent = '';
+    public $class_parent;
 
     /**
      * Data_json attribute
      *
      * @var string
      */
-    public string $data_json = '';
+    public $data_json;
 
     /**
      * Target attribute
      *
      * @var string
      */
-    public string $target = '';
+    public $target;
 
-    public mixed $dateCreated = null;
+    public $dateCreated;
 
-    public mixed $dateUpdated = null;
+    public $dateUpdated;
 
-    public string $uid = '';
+    public $uid;
 
     /**
      * Returns the validation rules for attributes.
@@ -125,7 +125,7 @@ class OlivemenusItemsModel extends Model
      *
      * @return array
      */
-    public function rules(): array
+    public function rules()
     {
         return [
             [['id', 'menu_id', 'parent_id', 'item_order', 'entry_id'], 'integer'],

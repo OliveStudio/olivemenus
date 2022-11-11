@@ -30,6 +30,8 @@
 }
 #menu-items-sidebar .accordion .ui-accordion-header {
 	border:1px solid #e3e5e8;
+	height:20px;
+	line-height:20px;
 	padding:10px 10px 10px 14px;
 	cursor:pointer;
     background:#fafafa;
@@ -193,6 +195,8 @@
 }
 #menu-items .sortable li .item-heading {
 	border:1px solid #e3e5e8;
+	height:20px;
+	line-height:20px;
 	padding:10px 10px 10px 14px;
     background:#fafafa;
     color: #29323d;
@@ -214,6 +218,7 @@
     padding-left:30px;
     display:inline-block;
     max-width:70%;
+    height:20px;
     overflow:hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -257,7 +262,6 @@
     font-size:11px;
     font-weight:400;
     color:#29323d;
-		border: 1px solid #fff;
 }
 #menu-items .sortable li .item-content {
     max-height:0;
@@ -276,7 +280,7 @@
     margin-bottom:0;
 }
 #menu-items .sortable li .item-content .inner a {
-    color:#6f7072;
+    color:#b9bfc6;
     text-decoration:underline;
 }
 #menu-items .sortable .placeholder {

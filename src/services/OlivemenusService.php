@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -36,37 +36,32 @@ class OlivemenusService extends Component
     // Public Methods
     // =========================================================================
 
-    public function getAllMenus(int $siteId): mixed
-    {
+    public function getAllMenus($siteId) {
         return OlivemenusRecord::find()
                     ->where(['site_id' => $siteId])
                     ->all();
     }
 
-    public function getMenuById(int $id): mixed 
-    {
+    public function getMenuById($id) {
         $record = OlivemenusRecord::findOne([
             'id' => $id
         ]);
         return new OlivemenusModel($record->getAttributes());
     }
 
-    public function getMenuByHandle(string $handle): mixed 
-    {
+    public function getMenuByHandle($handle) {
         return OlivemenusRecord::findOne([
             'handle' => $handle
         ]);
     }
 
-    public function getMenuByName(string $name): mixed
-    {
+    public function getMenuByName($name) {
         return OlivemenusRecord::findOne([
             'name' => $name
         ]);
     }
 
-    public function deleteMenuById(int $id): mixed 
-    {
+    public function deleteMenuById($id) {
         $record = OlivemenusRecord::findOne([
             'id' => $id
         ]);
@@ -79,8 +74,7 @@ class OlivemenusService extends Component
         }
     }
 
-    public function saveMenu(OlivemenusModel $model): mixed 
-    {
+    public function saveMenu(OlivemenusModel $model) {
         $record = false;
         if (isset($model->id)) {
             $record = OlivemenusRecord::findOne( [
@@ -105,11 +99,10 @@ class OlivemenusService extends Component
 
     // Front-end Methods
     // =========================================================================
-    public function getMenuHTML($handle = false, $config ) 
-    {
+    public function getMenuHTML($handle = false, $config ) {
         if ($handle === false || ($menu = $this->getMenuByHandle($handle)) === null) {
             echo '<p>' . Craft::t('olivemenus', 'A menu with this handle does not exist!') . '</p>';
-            return null;
+            return;
         }
 
         $menu_id = '';
@@ -154,8 +147,7 @@ class OlivemenusService extends Component
         echo $localHTML;
     }
 
-    private function getMenuItemHTML($menu_item, $config): mixed 
-    {
+    private function getMenuItemHTML($menu_item, $config) {
         $menu_item_url = '';
         $ul_class = '';
         $menu_item_class = 'menu-item';
@@ -246,8 +238,7 @@ class OlivemenusService extends Component
         return $localHTML;
     }
 
-    private function replaceEnvironmentVariables(string $str): mixed 
-    {
+    private function replaceEnvironmentVariables($str) {
         $environmentVariables = Craft::$app->config->general->aliases;
         if (is_array($environmentVariables)) {
             $tmp = [];

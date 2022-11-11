@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 3.x
  *
  * OliveStudio menu
  *
@@ -50,7 +50,7 @@ class Olivemenus extends Plugin
      *
      * @var Olivemenus
      */
-    public static Plugin $plugin;
+    public static $plugin;
 
     // Public Properties
     // =========================================================================
@@ -60,7 +60,7 @@ class Olivemenus extends Plugin
      *
      * @var string
      */
-    public string $schemaVersion = '1.1.11';
+    public $schemaVersion = '1.1.10';
 
     // Public Methods
     // =========================================================================
@@ -76,7 +76,7 @@ class Olivemenus extends Plugin
      * you do not need to load it in your init() method.
      *
      */
-    public function init(): void
+    public function init()
     {
         parent::init();
         $this->setComponents([
