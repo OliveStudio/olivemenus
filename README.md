@@ -1,4 +1,4 @@
-# Olivemenus plugin for Craft CMS 3.x
+# Olivemenus plugin for Craft CMS 4.x
 
 Olive Studio
 
@@ -6,7 +6,7 @@ Olive Studio
 
 ## Requirements
 
-This plugin requires Craft CMS 3.0.0-RC11 or later.
+This plugin requires Craft CMS 4.0.0-RC11 or later.
 
 ## Installation
 

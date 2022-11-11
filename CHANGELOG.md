@@ -75,3 +75,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Fixed
 - Added "site_id" to the install migration
 
+## 4.0.0 - 2022-11-11
+### Added
+- Added support for Craft 4

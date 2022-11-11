@@ -1,8 +1,8 @@
 {
     "name": "olivestudio/craft-olivemenus",
-    "description": "A powerful menus plugin for Craft 3 built for the need of simplicity and flexibility",
+    "description": "A powerful menus plugin for Craft 4 built for the need of simplicity and flexibility",
     "type": "craft-plugin",
-    "version": "1.2.1",
+    "version": "4.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -22,7 +22,8 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.0.0"
+        "craftcms/cms": "^3.0|^4.0",
+        "php": "^7.2.5|^8.0"
     },
     "autoload": {
         "psr-4": {

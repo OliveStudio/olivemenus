@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 3.x
+ * Olivemenus plugin for Craft CMS 4.x
  *
  * OliveStudio menu
  *
@@ -48,7 +48,7 @@ class MenuController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = ['index', 'menu-new', 'save-menu', 'delete-menu', 'menu-edit'];
+    protected array|int|bool $allowAnonymous = ['index', 'menu-new', 'save-menu', 'delete-menu', 'menu-edit'];
 
     // Public Methods
     // =========================================================================
@@ -59,7 +59,7 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionIndex($siteHandle = null)
+    public function actionIndex(string $siteHandle = null): mixed
     {
         $siteHandle = $siteHandle ?? Craft::$app->getSites()->currentSite->handle;
 
@@ -81,7 +81,7 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionMenuNew($siteHandle)
+    public function actionMenuNew(string $siteHandle): mixed
     {
         $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
         if (!$objSite) {
@@ -100,7 +100,7 @@ class MenuController extends Controller
      *
      * @return mixed
      */
-    public function actionSaveMenu()
+    public function actionSaveMenu(): mixed
     {
         $this->requirePostRequest();
         if (isset(Craft::$app->request->getBodyParams()['data']['id'])) {
@@ -140,7 +140,8 @@ class MenuController extends Controller
 
     }
 
-    public function actionDeleteMenu() {
+    public function actionDeleteMenu(): mixed
+    {
         if (Craft::$app->request->getIsAjax()) {
             $this->requirePostRequest();
             $this->requireAcceptsJson();
@@ -173,7 +174,8 @@ class MenuController extends Controller
         }
     }
 
-    public function actionMenuEdit($menuId = null) {
+    public function actionMenuEdit(int $menuId = null): mixed 
+    {
         if ($menuId) {
             $menu = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
             $arrData['menu'] = $menu;
@@ -204,5 +206,7 @@ class MenuController extends Controller
 
             return $this->renderTemplate('olivemenus/_menu-edit', $arrData);
         }
+
+        return null;
     }
 }
