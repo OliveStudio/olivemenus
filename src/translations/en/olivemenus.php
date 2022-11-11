@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 3.x
+ * Olivemenus plugin for Craft CMS 4.x
  *
  * OliveStudio menu
  *
