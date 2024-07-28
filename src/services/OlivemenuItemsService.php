@@ -36,7 +36,7 @@ class OlivemenuItemsService extends Component
 {
     // Public Methods
     // =========================================================================
-    public function getSectionsWithEntries(int $site_id): mixed 
+    public function getSectionsWithEntries(int $site_id): mixed
     {
         $sections = $this->getSections($site_id);
 
@@ -107,7 +107,7 @@ class OlivemenuItemsService extends Component
         return 0;
     }
 
-    public function deleteItemsByMenuId($record): mixed 
+    public function deleteItemsByMenuId($record): mixed
     {
         $records = OlivemenusItemsRecord::findAll([
             'menu_id' => $record->id,
@@ -148,7 +148,7 @@ class OlivemenuItemsService extends Component
         return $arrMenuItems;
     }
 
-    public function getMenuItemsAdminMarkup(int $menuId): mixed 
+    public function getMenuItemsAdminMarkup(int $menuId): mixed
     {
         $localHTML = '';
         $arrMenuItems = $this->getMenuItems($menuId);
@@ -161,7 +161,7 @@ class OlivemenuItemsService extends Component
         return $localHTML;
     }
 
-    private function getSections(int $site_id): mixed 
+    private function getSections(int $site_id): mixed
     {
         $sections = [];
 
@@ -192,7 +192,7 @@ class OlivemenuItemsService extends Component
         return $sections;
     }
 
-    private function getEntriesBySection(string $handle, int $site_id): mixed 
+    private function getEntriesBySection(string $handle, int $site_id): mixed
     {
         return Entry::find()
                     ->section($handle)
@@ -208,7 +208,7 @@ class OlivemenuItemsService extends Component
                     ->one();
     }
 
-    private function sortMenuItemsByParents(array $arrMenuItems): array 
+    private function sortMenuItemsByParents(array $arrMenuItems): array
     {
         $counter = 0;
         $arrMenuItemsSorted = [];
@@ -229,8 +229,8 @@ class OlivemenuItemsService extends Component
         }
         return $arrMenuItemsSorted;
     }
-    
-    private function addChildToParent(mixed $arrMenuItems,mixed $menuItem): mixed 
+
+    private function addChildToParent(mixed $arrMenuItems,mixed $menuItem): mixed
     {
         $parent_id = $menuItem['id'];
 
@@ -272,7 +272,7 @@ class OlivemenuItemsService extends Component
                     $localHTML .= '<div class="inner">';
                         $localHTML .= '<div class="row field">';
                             $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Name') . ':</label>';
+                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Name') . '</label>';
                             $localHTML .= '</div>';
                             $localHTML .= '<div class="input">';
                                 $localHTML .= '<input class="text nicetext fullwidth" type="text" name="item-name" value="' .$menuItem['name']. '" />';
@@ -281,7 +281,7 @@ class OlivemenuItemsService extends Component
                         if (!$menuItem['entry_id']) {
                             $localHTML .= '<div class="row field">';
                                 $localHTML .= '<div class="heading">';
-                                    $localHTML .= '<label>' . Craft::t('olivemenus', 'Custom URL') . ':</label>';
+                                    $localHTML .= '<label>' . Craft::t('olivemenus', 'Custom URL') . '</label>';
                                 $localHTML .= '</div>';
                                 $localHTML .= '<div class="input">';
                                     $localHTML .= '<input class="text nicetext fullwidth" type="text" name="custom-url" value="' .$menuItem['custom_url']. '" />';
@@ -290,7 +290,7 @@ class OlivemenuItemsService extends Component
                         }
                         $localHTML .= '<div class="row field">';
                             $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Class') . ':</label>';
+                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Class') . '</label>';
                             $localHTML .= '</div>';
                             $localHTML .= '<div class="input">';
                                 $localHTML .= '<input class="text nicetext fullwidth" type="text" name="class" value="' .$menuItem['class']. '" />';
@@ -298,7 +298,7 @@ class OlivemenuItemsService extends Component
                         $localHTML .= '</div>';
                         $localHTML .= '<div class="row field">';
                             $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Class parent') . ':</label>';
+                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Class parent') . '</label>';
                             $localHTML .= '</div>';
                             $localHTML .= '<div class="input">';
                                 $localHTML .= '<input class="text nicetext fullwidth" type="text" name="class-parent" value="' .$menuItem['class_parent']. '" />';
@@ -306,7 +306,7 @@ class OlivemenuItemsService extends Component
                         $localHTML .= '</div>';
                         $localHTML .= '<div class="row field">';
                             $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Data JSON') . ':</label>';
+                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Data JSON') . '</label>';
                             $localHTML .= '</div>';
                             $localHTML .= '<div class="input">';
                                 $localHTML .= '<textarea class="text nicetext fullwidth" name="data-json">' .$menuItem['data_json']. '</textarea>';
@@ -315,7 +315,7 @@ class OlivemenuItemsService extends Component
 
                         $localHTML .= '<div class="row field">';
                             $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Target options') . ':</label>';
+                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Target options') . '</label>';
                             $localHTML .= '</div>';
                             $localHTML .= '<div class="input">';
                                 $localHTML .= '<select id="target-'.$menuItem['id'].'" class="text nicetext fullwidth" name="target">';
@@ -327,9 +327,14 @@ class OlivemenuItemsService extends Component
 
                         if ($menuItem['custom_url'] == '') {
                             $localHTML .= '<div class="row field">';
-                                $localHTML .= '<div class="heading">';
-                                    if ($entry) $localHTML .= '<label>' . Craft::t('olivemenus', 'Original') . ':</label> <a href="' . $entry->url . '" target="_blank">' . $entry->title . '</a>';
-                                $localHTML .= '</div>';
+                                if ($entry) {
+                                    $localHTML .= '<div class="heading">';
+                                        $localHTML .= '<label>' . Craft::t('olivemenus', 'Original') . '</label>';
+                                    $localHTML .= '</div>';
+                                    $localHTML .= '<div class="input">';
+                                        $localHTML .= '<a href="' . $entry->url . '" target="_blank">' . $entry->title . '</a>';
+                                    $localHTML .= '</div>';
+                                }
                             $localHTML .= '</div>';
                         }
                     $localHTML .= '</div>';
@@ -338,11 +343,11 @@ class OlivemenuItemsService extends Component
             if (isset($menuItem['children'])) {
                 $localHTML .= '<ol>';
                     foreach ($menuItem['children'] as $child) {
-                       $localHTML .= $this->getItemAdminMarkup($child); 
+                       $localHTML .= $this->getItemAdminMarkup($child);
                     }
                 $localHTML .= '</ol>';
             }
-        $localHTML .= '</li>'; 
+        $localHTML .= '</li>';
 
         return $localHTML;
     }

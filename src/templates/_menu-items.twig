@@ -1,18 +1,24 @@
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
 
-{% set title = "Edit items - " ~ menu.name |t('olivemenus') %}
+{% set title = menu.name |t('olivemenus') %}
 
-{% set selectedTab = '' %}
+{% block actionButton %}
+	<input type="submit" class="btn submit" form="menu-items-form" value="{{ "Save"|t('olivemenus') }}" />
+{% endblock %}
 
-{% set tabs = {
-    menus: { label: "All Menus"|t('olivemenus'), url: url('olivemenus/' ~ objSite.handle) },
-    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new/' ~ objSite.handle) }
-} %}
+{% set crumbs = [
+  {
+    label: 'Olivemenus'|t('olivemenus'),
+    url: url('olivemenus'),
+  }
+] %}
 
 {% set content %}
+	{{ actionInput('olivemenus/menu-items/save-menu-items') }}
 	<div class="d-flex">
 		<div id="menu-items-sidebar">
+			<h2>{{ 'Items available'|t('olivemenus') }}</h2>
 			{% if sections is not empty %}
 				<div class="os-accordion accordion">
 					<h4 class="ui-accordion-header">{{ "Singles"|t('olivemenus') }}</h4>
@@ -285,28 +291,11 @@
 					</div>
 				</div>
 			{% endif %}
-			<div class="templating">
-				<div class="heading">{{ 'Templating code'|t('olivemenus') }}</div>
-				<div class="content">
-					<p>{{ "Use this code to embed this menu in your templates:"|t('olivemenus') }}</p>
-					<pre>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</pre>
-					<p>{{ "Optionally you can add an array of settings to the call, to set extra configurations for the menu:"|t('olivemenus') }}</p>
-					<pre>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}',{ 'menu-id': 'main-menu' }) }}{% endverbatim %}</pre>
-					<p>{{ "Use this code to get only the data from this menu in your templates:"|t('olivemenus') }}</p>
-					<pre>{% verbatim %}{{ craft.olivemenus.getMenuData('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</pre>
-				</div>
-			</div>
-			<div class="templating">
-				<div class="heading">Data JSON</div>
-				<div class="content">
-					<p>{{ "If you want to use data attributes asignment to each menu item, you can add your data items in the following format in the Data JSON Field:"|t('olivemenus') }}</p>
-					<pre>data-attr : value-1</pre>
-					<p>{{ "Add a new line for each data attribute."|t('olivemenus') }}</p>
-				</div>
-			</div>
 		</div>
+
 		<div id="menu-items">
-			<form method="post" accept-charset="UTF-8">
+			<h2>{{ 'Items assigned to {name}'|t('olivemenus', params = { name: menu.name }) }}</h2>
+			<form method="post" accept-charset="UTF-8" id="menu-items-form">
 				{{ csrfInput() }}
 				<input type="hidden" name="action" value="olivemenus/menu-items/save-menu-items" />
 				<input type="hidden" name="menu-id" value="{{ menu.id }}" />
@@ -314,17 +303,32 @@
 				<textarea class="hidden" id="menu-items-serialized" name="menu-items-serialized"></textarea>
 
 				<ol id="menu-list" class="sortable">
-					{{menuItemsMarkup | raw}}
+					{{ menuItemsMarkup | raw }}
 				</ol>
 				<p id="menu-list-placeholder" {% if menuItemsMarkup is not empty %}style="display:none;"{% endif %}>{{ "There are currently no menu items assigned to this menu."|t('olivemenus') }}</p>
-
-				<div class="buttons olivebuttonedititems">
-					<div class="btngroup submit first">
-						<input type="submit" class="btn submit" value="{{ 'Save'|t('olivemenus') }}">
-						<a class="btn" href="{{ url('olivemenus/delete-menu/' ~ menu.id) }}" onclick="return confirm_delete();">{{ "Delete"|t('olivemenus') }}</a>
-					</div>
-				</div>
 			</form>
 		</div>
+	</div>
+
+	<hr>
+
+	<div id="instructions">
+		{% if devMode %}
+			<h2>{{ 'Templating code'|t('olivemenus') }}</h2>
+
+			<p>{{ "Use this code to embed this menu in your templates:"|t('olivemenus') }}</p>
+			<code>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</code>
+
+			<p>{{ "Optionally you can add an array of settings to the call, to set extra configurations for the menu:"|t('olivemenus') }}</p>
+			<code>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}',{ 'menu-id': 'main-menu' }) }}{% endverbatim %}</code>
+
+			<p>{{ "Use this code to get only the data from this menu in your templates:"|t('olivemenus') }}</p>
+			<code>{% verbatim %}{{ craft.olivemenus.getMenuData('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</code>
+		{% endif %}
+
+		<h2>Data JSON</h2>
+		<p>{{ "If you want to use data attributes asignment to each menu item, you can add your data items in the following format in the Data JSON Field:"|t('olivemenus') }}</p>
+		<code>data-attr : value-1</code>
+		<p>{{ "Add a new line for each data attribute."|t('olivemenus') }}</p>
 	</div>
 {% endset %}

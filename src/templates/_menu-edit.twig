@@ -7,12 +7,9 @@
 	{% set title = "Edit Menu -  " ~ menu.name |t('olivemenus') %}
 {% endif %}
 
-{% set selectedTab = '' %}
-
-{% set tabs = {
-    menus: { label: "All Menus"|t('olivemenus'), url: url('olivemenus/' ~ objSite.handle) },
-    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new/' ~ objSite.handle) }
-} %}
+{% block actionButton %}
+    <a href="{{ url('olivemenus/menu-new/' ~ objSite.handle) }}" class="btn submit add icon">{{ "New Menu"|t('olivemenus') }}</a>
+{% endblock %}
 
 {% set content %}
     <form method="post" accept-charset="UTF-8">
@@ -36,7 +33,7 @@
                 </ul>
             {% endif %}
         {% endmacro %}
-        
+
         {% from _self import errorList %}
 
         {% if menu is defined %}

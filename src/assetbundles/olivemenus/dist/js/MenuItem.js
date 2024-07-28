@@ -99,7 +99,7 @@ $(document).ready(function() {
                                 itemHTML += '<div class="inner">';
                                     itemHTML += '<div class="row field">';
                                         itemHTML += '<div class="heading">';
-                                            itemHTML += '<label>' + Craft.t('olivemenus','Name') + ':</label>';
+                                            itemHTML += '<label>' + Craft.t('olivemenus','Name') + '</label>';
                                         itemHTML += '</div>';
                                         itemHTML += '<div class="input">';
                                             itemHTML += '<input class="text nicetext fullwidth" type="text" name="item-name" value="' + itemName + '">';
@@ -107,7 +107,7 @@ $(document).ready(function() {
                                     itemHTML += '</div>';
                                     itemHTML += '<div class="row field">';
                                         itemHTML += '<div class="heading">';
-                                            itemHTML += '<label>' + Craft.t('olivemenus','Class') + ':</label>';
+                                            itemHTML += '<label>' + Craft.t('olivemenus','Class') + '</label>';
                                         itemHTML += '</div>';
                                         itemHTML += '<div class="input">';
                                             itemHTML += '<input class="text nicetext fullwidth" type="text" name="class" value="" />';
@@ -115,7 +115,7 @@ $(document).ready(function() {
                                     itemHTML += '</div>';
                                     itemHTML += '<div class="row field">';
                                         itemHTML += '<div class="heading">';
-                                            itemHTML += '<label>' + Craft.t('olivemenus','Class parent') + ':</label>';
+                                            itemHTML += '<label>' + Craft.t('olivemenus','Class parent') + '</label>';
                                         itemHTML += '</div>';
                                         itemHTML += '<div class="input">';
                                             itemHTML += '<input class="text nicetext fullwidth" type="text" name="class-parent" value="" />';
@@ -123,7 +123,7 @@ $(document).ready(function() {
                                     itemHTML += '</div>';
                                     itemHTML += '<div class="row field">';
                                         itemHTML += '<div class="heading">';
-                                            itemHTML += '<label>' + Craft.t('olivemenus','Data JSON') + ':</label>';
+                                            itemHTML += '<label>' + Craft.t('olivemenus','Data JSON') + '</label>';
                                         itemHTML += '</div>';
                                         itemHTML += '<div class="input">';
                                             itemHTML += '<textarea class="text nicetext fullwidth" name="data-json"></textarea>';
@@ -132,7 +132,7 @@ $(document).ready(function() {
 
                                     itemHTML += '<div class="row field">';
                                         itemHTML += '<div class="heading">';
-                                            itemHTML += '<label>' + Craft.t('olivemenus','Target options') + ':</label>';
+                                            itemHTML += '<label>' + Craft.t('olivemenus','Target options') + '</label>';
                                         itemHTML += '</div>';
                                         itemHTML += '<div class="input">';
                                             itemHTML += '<select id="target-' + inputCounter + '" class="text nicetext fullwidth" name="target">';
@@ -143,9 +143,14 @@ $(document).ready(function() {
                                     itemHTML += '</div>';
 
                                     itemHTML += '<div class="row field">';
-                                        itemHTML += '<div class="heading">';
-                                            if ( itemURL ) itemHTML += '<label>' + Craft.t('olivemenus','Original') + ':</label> <a href="' + itemURL + '" target="_blank">' + itemName + '</a>';
-                                        itemHTML += '</div>';
+                                        if ( itemURL ) {
+                                            itemHTML += '<div class="heading">';
+                                                itemHTML += '<label>' + Craft.t('olivemenus','Original') + '</label>';
+                                            itemHTML += '</div>';
+                                            itemHTML += '<div class="input">';
+                                                itemHTML += '<a href="' + itemURL + '" target="_blank">' + itemName + '</a>';
+                                            itemHTML += '</div>';
+                                        }
                                     itemHTML += '</div>';
                                 itemHTML += '</div>';
                             itemHTML += '</div>';
@@ -267,7 +272,7 @@ $(document).ready(function() {
                         menuItemID = menuItemElement.find('input[name="item-id"]'),
                         menuItemNameElement = menuItemElement.find('input[name="item-name"]'),
                         menuItemNameValue = menuItemNameElement.val(),
-                        
+
                         menuItemEntryIDElement = menuItemElement.find('input[name="item-entry-id"]'),
                         menuItemCustomURLElement = menuItemElement.find('input[name="custom-url"]'),
 
@@ -283,7 +288,7 @@ $(document).ready(function() {
                     } else {
                         menuItemID = menuItemID.val();
                     }
-                    
+
                     if (menuItemCustomURLElement.length) {
                         menuItemCustomURLValue = menuItemCustomURLElement.val();
                     } else {
