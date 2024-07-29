@@ -5,11 +5,6 @@
 
 {% set selectedTab = 'new' %}
 
-{% set tabs = {
-    menus: { label: "All Menus"|t('olivemenus'), url: url('olivemenus/' ~ objSite.handle) },
-    new:    { label: "New Menu"|t('olivemenus'), url: url('olivemenus/menu-new/' ~ objSite.handle) }
-} %}
-
 {% set showSiteMenu = (craft.app.getIsMultiSite() ? true : false) %}
 {% set urlFormat = 'olivemenus/menu-new/{handle}' %}
 {% set selectedSiteId = objSite.id %}
@@ -41,7 +36,7 @@
                 </ul>
             {% endif %}
         {% endmacro %}
-        
+
         {% from _self import errorList %}
 
         {% if menu is defined %}
