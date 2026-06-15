@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 5.x
  *
  * OliveStudio menu
  *
@@ -98,9 +98,9 @@ class OlivemenusModel extends Model
 
         $validator = new HandleValidator();
         $validator->validateAttribute($this, 'handle');
-        $data = Olivemenus::$plugin->olivemenus->getMenuByHandle($this->handle);
+        $data = Olivemenus::$plugin->olivemenus->getMenuByHandle($this->handle, $this->site_id);
         if ($data && $data->id != $this->id) {
-            $this->addError('handle', Craft::t('olivemenus', 'Handle "{handle}" is already in use', ['handle' => $this->handle]));
+            $this->addError('handle', Craft::t('olivemenus', 'Handle "{handle}" is already in use on this site', ['handle' => $this->handle]));
         }
 
     }
@@ -110,9 +110,9 @@ class OlivemenusModel extends Model
 
         $validator = new StringValidator();
         $validator->validateAttribute($this, 'name');
-        $data = Olivemenus::$plugin->olivemenus->getMenuByName($this->name);
+        $data = Olivemenus::$plugin->olivemenus->getMenuByName($this->name, $this->site_id);
         if ($data && $data->id != $this->id) {
-            $this->addError('name', Craft::t('olivemenus', 'Name "{name}" is already in use', ['name' => $this->name]));
+            $this->addError('name', Craft::t('olivemenus', 'Name "{name}" is already in use on this site', ['name' => $this->name]));
         }
 
     }

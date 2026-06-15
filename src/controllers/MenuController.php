@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 5.x
  *
  * OliveStudio menu
  *
@@ -48,7 +48,7 @@ class MenuController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected array|int|bool $allowAnonymous = ['index', 'menu-new', 'save-menu', 'delete-menu', 'menu-edit'];
+    protected array|int|bool $allowAnonymous = false;
 
     // Public Methods
     // =========================================================================

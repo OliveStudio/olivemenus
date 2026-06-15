@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 5.x
  *
  * OliveStudio menu
  *
@@ -60,7 +60,7 @@ class Olivemenus extends Plugin
      *
      * @var string
      */
-    public string $schemaVersion = '1.1.11';
+    public string $schemaVersion = '1.1.12';
 
     // Public Methods
     // =========================================================================

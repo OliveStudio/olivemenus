@@ -1,6 +1,6 @@
 <?php
 /**
- * Olivemenus plugin for Craft CMS 4.x
+ * Olivemenus plugin for Craft CMS 5.x
  *
  * OliveStudio menu
  *
@@ -13,6 +13,7 @@ namespace olivestudio\olivemenus\variables;
 use olivestudio\olivemenus\Olivemenus;
 
 use Craft;
+use Twig\Markup;
 
 /**
  * Olivemenus Variable
@@ -48,13 +49,16 @@ class OlivemenusVariable
      * @return string
      */
 
-    public function getMenuHTML(string $handle, $config = array())
+    public function getMenuHTML(string $handle, array $config = [], ?int $siteId = null): Markup|string
     {
         if ($handle != '') {
-            return Olivemenus::$plugin->olivemenus->getMenuHTML($handle, $config);
+            return new Markup(
+                Olivemenus::$plugin->olivemenus->getMenuHTML($handle, $config, $siteId),
+                Craft::$app->charset
+            );
         }
 
-        return "";
+        return '';
     }
 
     /**
@@ -67,12 +71,12 @@ class OlivemenusVariable
      * @return Mixed The data of the menu you wrote or a string with a notice.
      */
 
-    public function getMenuData(string $handle): mixed
+    public function getMenuData(string $handle, ?int $siteId = null): array
     {
         if ($handle != '') {
-            return Olivemenus::$plugin->olivemenus->getMenuData($handle);
+            return Olivemenus::$plugin->olivemenus->getMenuData($handle, $siteId);
         }
 
-        return "";
+        return [];
     }
 }

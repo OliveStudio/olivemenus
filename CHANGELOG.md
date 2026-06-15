@@ -81,3 +81,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 4.0.0 - 2022-11-11
 ### Added
 - Added Craft 4
+
+## 5.0.0 - 2024-07-29
+### Added
+- Craft 5 compatibility & matched styling
+
+## 5.0.1 - 2026-06-12
+### Improvements
+- Craft 5 improvements
