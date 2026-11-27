@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Olivemenus plugin for Craft CMS 5.x
  *
@@ -10,10 +11,10 @@
 
 namespace olivestudio\olivemenus\models;
 
-use olivestudio\olivemenus\Olivemenus;
-
 use Craft;
+
 use craft\base\Model;
+use olivestudio\olivemenus\Olivemenus;
 
 /**
  * OlivemenusItemsModel Model
@@ -74,11 +75,11 @@ class OlivemenusItemsModel extends Model
      */
     public int $entry_id = 0;
 
-     /**
-     * Custom_url attribute
-     *
-     * @var string
-     */
+    /**
+    * Custom_url attribute
+    *
+    * @var string
+    */
     public string $custom_url = '';
 
     /**
@@ -109,6 +110,12 @@ class OlivemenusItemsModel extends Model
      */
     public string $target = '';
 
+    public bool $enabled = true;
+
+    public bool $use_element_title = false;
+
+    public bool $hide_when_unavailable = false;
+
     public mixed $dateCreated = null;
 
     public mixed $dateUpdated = null;
@@ -129,7 +136,8 @@ class OlivemenusItemsModel extends Model
     {
         return [
             [['id', 'menu_id', 'parent_id', 'item_order', 'entry_id'], 'integer'],
-            [['name', 'custom_url', 'class', 'class_parent', 'data_json', 'target'], 'string'],
+            [['name', 'custom_url', 'class', 'class_parent', 'data_json', 'target'], 'string', 'max' => 255],
+            [['enabled', 'use_element_title', 'hide_when_unavailable'], 'boolean'],
             [['menu_id', 'parent_id', 'item_order', 'name'], 'required'],
         ];
     }

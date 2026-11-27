@@ -1,334 +1,74 @@
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
 
-{% set title = menu.name |t('olivemenus') %}
-
-{% block actionButton %}
-	<input type="submit" class="btn submit" form="menu-items-form" value="{{ "Save"|t('olivemenus') }}" />
-{% endblock %}
-
+{% set title = menu.name %}
 {% set crumbs = [
-  {
-    label: 'Olivemenus'|t('olivemenus'),
-    url: url('olivemenus'),
-  }
+    {
+        label: 'Olive Menus'|t('olivemenus'),
+        url: cpUrl('olivemenus/' ~ objSite.handle),
+    },
 ] %}
 
+{% block actionButton %}
+    <button type="submit" class="btn submit" form="menu-items-form">{{ 'Save menu'|t('olivemenus') }}</button>
+{% endblock %}
+
 {% set content %}
-	{{ actionInput('olivemenus/menu-items/save-menu-items') }}
-	<div class="d-flex">
-		<div id="menu-items-sidebar">
-			<h2>{{ 'Items available'|t('olivemenus') }}</h2>
-			{% if sections is not empty %}
-				<div class="os-accordion accordion">
-					<h4 class="ui-accordion-header">{{ "Singles"|t('olivemenus') }}</h4>
-					<div class="ui-accordion-content">
-						{% if sections.single is defined and sections.single is not empty  %}
-							<div class="os-tabs ui-tabs">
-								<ul class="ui-tabs-nav">
-									<li><a href="#singles-all">{{ "View all"|t('olivemenus') }}</a></li>
-									<li><a href="#singles-search">{{ "Search"|t('olivemenus') }}</a></li>
-								</ul>
-								<div id="singles-all" class="ui-tabs-panel">
-									<form method="POST">
-										{{ csrfInput() }}
-										<div class="fields">
-											{% for single in sections.single %}
-												{% if single.entries is not empty %}
-													{% set local_id = single.entries.id %}
-													{% set local_title = single.entries.title %}
-													{% set local_url = single.entries.url %}
-													<div class="field checkboxfield">
-														<input id="single-{{local_id}}" type="checkbox" value="{{local_id}}" name="single-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-														<label for="single-{{local_id}}">{{local_title}}</label>
-													</div>
-												{% endif %}
-											{% endfor %}
-										</div>
-										<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}" />
-									</form>
-								</div>
-								<div id="singles-search" class="ui-tabs-panel">
-									<form method="POST">
-										{{ csrfInput() }}
-										<div class="input">
-											<input id="singles-search-input" class="search text nicetext fullwidth" placeholder="{{ 'Start typing to search...'|t('olivemenus') }}" type="text" />
-											<ul class="search-list">
-												{% for single in sections.single %}
-													{% if single.entries is not empty %}
-														{% set local_id = single.entries.id %}
-														{% set local_title = single.entries.title %}
-														{% set local_url = single.entries.url %}
-														<li class="field checkboxfield">
-															<input id="single-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="single-search-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-															<label for="single-search-{{local_id}}">{{local_title}}</label>
-														</li>
-													{% endif %}
-												{% endfor %}
-											</ul>
-										</div>
-										<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}" />
-									</form>
-								</div>
-							</div>
-						{% else %}
-							<p>{{ "There are no singles defined."|t('olivemenus') }}</p>
-						{% endif %}
-					</div>
-					<h4 class="ui-accordion-header">{{ "Channels"|t('olivemenus') }}</h4>
-					<div class="ui-accordion-content">
-					{% if sections.channel is defined and sections.channel is not empty %}
-						<div class="os-accordion accordion">
-							{% for channel in sections.channel %}
-								<h4 class="ui-accordion-header">{{channel.name}}</h4>
-								<div class="ui-accordion-content">
-									{% if channel.entries is defined and channel.entries is not empty %}
-									{% set entries = craft.entries()
-													.section(channel.handle)
-													.site(objSite.handle)
-													.all() %}
-										<div class="os-tabs ui-tabs">
-											<ul class="ui-tabs-nav">
-												<li><a href="#{{channel.handle}}-all">{{ "View all"|t('olivemenus') }}</a></li>
-												<li><a href="#{{channel.handle}}-search">{{ "Search"|t('olivemenus') }}</a></li>
-											</ul>
-											<div id="{{channel.handle}}-all" class="ui-tabs-panel">
-												<form method="POST">
-													{{ csrfInput() }}
-													<div class="fields">
-														{% for entry in entries %}
-															{% set local_id = entry.id %}
-															{% set local_title = entry.title %}
-															{% set local_url = entry.url %}
-															<div class="field checkboxfield">
-																<input id="channel-{{local_id}}" type="checkbox" value="{{local_id}}" name="channel-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-																<label for="channel-{{local_id}}">{{local_title}}</label>
-															</div>
-														{% endfor %}
-													</div>
-													<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}">
-												</form>
-											</div>
-											<div id="{{channel.handle}}-search" class="ui-tabs-panel">
-												<form method="POST">
-													{{ csrfInput() }}
-													<div class="input">
-														<input id="{{channel.handle}}-search-input" class="search text nicetext fullwidth" placeholder="Start typing to search..." type="text" />
-														<ul class="search-list">
-															{% for entry in entries %}
-																{% set local_id = entry.id %}
-																{% set local_title = entry.title %}
-																{% set local_url = entry.url %}
-																<li class="field checkboxfield">
-																	<input id="channel-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="channel-search-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-																	<label for="channel-search-{{local_id}}">{{local_title}}</label>
-																</li>
-															{% endfor %}
-														</ul>
-													</div>
-													<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}">
-												</form>
-											</div>
-										</div>
-									{% else %}
-										<p>{{ "There are no entries in this channel."|t('olivemenus') }}</p>
-									{% endif %}
-								</div>
-							{% endfor %}
-						</div>
-						{% else %}
-							<p>{{ "There are no channels defined."|t('olivemenus') }}</p>
-						{% endif %}
-					</div>
-					<h4 class="ui-accordion-header">{{ "Structures"|t('olivemenus') }}</h4>
-					<div class="ui-accordion-content">
-						{% if sections.structure is defined and sections.structure is not empty %}
-							<div class="os-accordion accordion">
-								{% for structure in sections.structure %}
-									<h4 class="ui-accordion-header">{{structure.name}}</h4>
-									<div class="ui-accordion-content">
-										{% if structure.entries is defined and structure.entries is not empty %}
-										{% set entries = craft.entries()
-														.section(structure.handle)
-														.site(objSite.handle)
-														.all() %}
-											<div class="os-tabs ui-tabs">
-												<ul class="ui-tabs-nav">
-													<li><a href="#{{structure.handle}}-all">{{ "View all"|t('olivemenus') }}</a></li>
-													<li><a href="#{{structure.handle}}-search">{{ "Search"|t('olivemenus') }}</a></li>
-												</ul>
-												<div id="{{structure.handle}}-all" class="ui-tabs-panel">
-													<form method="POST">
-														{{ csrfInput() }}
-														<div class="fields">
-															 {% for entry in entries %}
-																{% set local_id = entry.id %}
-																{% set local_title = entry.title %}
-																{% set local_url = entry.url %}
-																<div class="field checkboxfield">
-																	<input id="structure-{{local_id}}" type="checkbox" value="{{local_id}}" name="structure-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-																	<label for="structure-{{local_id}}">{{local_title}}</label>
-																</div>
-															{% endfor %}
-														</div>
-														<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}">
-													</form>
-												</div>
-												<div id="{{structure.handle}}-search" class="ui-tabs-panel">
-													<form method="POST">
-														{{ csrfInput() }}
-														<div class="input">
-															<input id="{{structure.handle}}-search-input" class="search text nicetext fullwidth" placeholder="Start typing to search..." type="text" />
-															<ul class="search-list">
-																{% for entry in entries %}
-																	{% set local_id = entry.id %}
-																	{% set local_title = entry.title %}
-																	{% set local_url = entry.url %}
-																	<li class="field checkboxfield">
-																		<input id="structure-search-{{local_id}}" type="checkbox" value="{{local_id}}" name="structure-search-{{local_id}}" data-url="{{local_url}}" class="fieldtoggle checkbox" />
-																		<label for="structure-search-{{local_id}}">{{local_title}}</label>
-																	</li>
-																{% endfor %}
-															</ul>
-														</div>
-														<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}">
-													</form>
-												</div>
-											</div>
-										{% else %}
-											<p>{{ 'There are no entries in this structure.'|t('olivemenus') }}</p>
-										{% endif %}
-									</div>
-								{% endfor %}
-							</div>
-						{% else %}
-							<p>{{ 'There are no structures defined.'|t('olivemenus') }}</p>
-						{% endif %}
-					</div>
-					<h4 class="ui-accordion-header">{{ "Categories"|t('olivemenus') }}</h4>
-					<div class="ui-accordion-content">
-						{% if categories is defined and categories is not empty %}
-							<div class="os-accordion accordion">
-								{% for category in categories %}
-									<h4 class="ui-accordion-header">{{category.name}}</h4>
-									<div class="ui-accordion-content">
-										{% set entries = craft.categories()
-											.group(category.handle)
-											.site(objSite.handle)
-											.all() %}
-										{% if entries|length %}
-											<div class="os-tabs ui-tabs">
-												<ul class="ui-tabs-nav">
-													<li><a href="#{{category.handle}}-all">{{ "View all"|t('olivemenus') }}</a></li>
-													<li><a href="#{{category.handle}}-search">{{ "Search"|t('olivemenus') }}</a></li>
-												</ul>
-												<div id="{{category.handle}}-all" class="ui-tabs-panel">
-													<form method="POST">
-														{{ csrfInput() }}
-														<div class="fields">
-															 {% for entry in entries %}
-																<div class="field checkboxfield">
-																	<input id="category-search-{{entry.id}}" type="checkbox" value="{{entry.id}}" name="category-{{entry.id}}" data-url="{{entry.url}}" class="fieldtoggle checkbox" />
-																	<label for="category-search-{{entry.id}}">{{entry.title}}</label>
-																</div>
-															{% endfor %}
-														</div>
-														<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}">
-													</form>
-												</div>
-												<div id="{{category.handle}}-search" class="ui-tabs-panel">
-													<form method="POST">
-														{{ csrfInput() }}
-														<div class="input">
-															<input id="{{category.handle}}-search-input" class="search text nicetext fullwidth" placeholder="Start typing to search..." type="text" />
-															<ul class="search-list">
-																{% for entry in entries %}
-																	<li class="field checkboxfield">
-																		<input id="category-search-{{entry.id}}" type="checkbox" value="{{entry.id}}" name="category-search-{{entry.id}}" data-url="{{entry.url}}" class="fieldtoggle checkbox" />
-																		<label for="category-search-{{entry.id}}">{{entry.title}}</label>
-																	</li>
-																{% endfor %}
-															</ul>
-														</div>
-														<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}">
-													</form>
-												</div>
-											</div>
-										{% else %}
-											<p>{{ 'There are no categories.'|t('olivemenus') }}</p>
-										{% endif %}
-									</div>
-								{% endfor %}
-							</div>
-						{% else %}
-							<p>{{ 'There are no categories groups defined.'|t('olivemenus') }}</p>
-						{% endif %}
-					</div>
-					<h4 class="ui-accordion-header">{{ 'Custom menu'|t('olivemenus') }}</h4>
-					<div class="ui-accordion-content">
-						<form class="custom-url" method="POST">
-							{{ csrfInput() }}
-							<div class="fields-custom">
-								<div class="field">
-									<div class="heading">
-										<label class="required" for="custom-menu-title">{{ 'Item text'|t('olivemenus') }}</label>
-									</div>
-									<div class="input">
-										<input id="custom-menu-title" class="text nicetext fullwidth" type="text" />
-									</div>
-								</div>
-								<div class="field">
-									<div class="heading">
-										<label for="custom-menu-url">{{ 'URL'|t('olivemenus') }}</label>
-									</div>
-									<div class="input">
-										<input id="custom-menu-url" class="text nicetext fullwidth" type="text" />
-									</div>
-								</div>
-							</div>
-							<input type="submit" class="btn" value="{{ 'Add to menu'|t('olivemenus') }}">
-						</form>
-					</div>
-				</div>
-			{% endif %}
-		</div>
+    <div class="olive-menu-editor">
+        <aside id="menu-items-sidebar" aria-labelledby="add-menu-items">
+            <h2 id="add-menu-items">{{ 'Add menu items'|t('olivemenus') }}</h2>
+            <div class="buttons">
+                {% for elementType, label in elementTypes %}
+                    <button type="button" class="btn add icon" data-menu-element-type="{{ elementType }}" data-site-id="{{ menu.site_id }}">
+                        {{ label }}
+                    </button>
+                {% endfor %}
+            </div>
 
-		<div id="menu-items">
-			<h2>{{ 'Items assigned to {name}'|t('olivemenus', params = { name: menu.name }) }}</h2>
-			<form method="post" accept-charset="UTF-8" id="menu-items-form">
-				{{ csrfInput() }}
-				<input type="hidden" name="action" value="olivemenus/menu-items/save-menu-items" />
-				<input type="hidden" name="menu-id" value="{{ menu.id }}" />
-				<input type="hidden" id="menu-items-deleted" name="menu-items-deleted" value="" />
-				<textarea class="hidden" id="menu-items-serialized" name="menu-items-serialized"></textarea>
+            <h3>{{ 'Custom link'|t('olivemenus') }}</h3>
+            <form class="custom-url" method="post">
+                <div class="fields-custom">
+                    {{ forms.textField({
+                        label: 'Link text'|t('olivemenus'),
+                        id: 'custom-menu-title',
+                        maxlength: 255,
+                        required: true,
+                    }) }}
+                    {{ forms.textField({
+                        label: 'URL'|t('olivemenus'),
+                        instructions: 'Leave blank for a heading with no link.'|t('olivemenus'),
+                        id: 'custom-menu-url',
+                        placeholder: '/contact',
+                        maxlength: 255,
+                    }) }}
+                </div>
+                <button type="submit" class="btn">{{ 'Add to menu'|t('olivemenus') }}</button>
+            </form>
+        </aside>
 
-				<ol id="menu-list" class="sortable">
-					{{ menuItemsMarkup | raw }}
-				</ol>
-				<p id="menu-list-placeholder" {% if menuItemsMarkup is not empty %}style="display:none;"{% endif %}>{{ "There are currently no menu items assigned to this menu."|t('olivemenus') }}</p>
-			</form>
-		</div>
-	</div>
-
-	<hr>
-
-	<div id="instructions">
-		{% if devMode %}
-			<h2>{{ 'Templating code'|t('olivemenus') }}</h2>
-
-			<p>{{ "Use this code to embed this menu in your templates:"|t('olivemenus') }}</p>
-			<code>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</code>
-
-			<p>{{ "Optionally you can add an array of settings to the call, to set extra configurations for the menu:"|t('olivemenus') }}</p>
-			<code>{% verbatim %}{{ craft.olivemenus.getMenuHTML('{% endverbatim %}{{menu.handle}}{% verbatim %}',{ 'menu-id': 'main-menu' }) }}{% endverbatim %}</code>
-
-			<p>{{ "Use this code to get only the data from this menu in your templates:"|t('olivemenus') }}</p>
-			<code>{% verbatim %}{{ craft.olivemenus.getMenuData('{% endverbatim %}{{menu.handle}}{% verbatim %}') }}{% endverbatim %}</code>
-		{% endif %}
-
-		<h2>Data JSON</h2>
-		<p>{{ "If you want to use data attributes asignment to each menu item, you can add your data items in the following format in the Data JSON Field:"|t('olivemenus') }}</p>
-		<code>data-attr : value-1</code>
-		<p>{{ "Add a new line for each data attribute."|t('olivemenus') }}</p>
-	</div>
+        <section id="menu-items" aria-labelledby="menu-structure">
+            <h2 id="menu-structure">{{ 'Menu structure'|t('olivemenus') }}</h2>
+            <p class="light">{{ 'Drag items to arrange them, or use the move controls in each item’s settings.'|t('olivemenus') }}</p>
+            <form method="post" accept-charset="UTF-8" id="menu-items-form">
+                {{ csrfInput() }}
+                {{ actionInput('olivemenus/menu-items/save-menu-items') }}
+                <input type="hidden" name="menu-id" value="{{ menu.id }}" />
+                <input type="hidden" id="menu-items-deleted" name="menu-items-deleted" value="" />
+                <input type="hidden" id="menu-items-serialized" name="menu-items-serialized" value="" />
+                <ol id="menu-list" class="sortable">
+                    {{ menuItemsMarkup|raw }}
+                </ol>
+                <p id="menu-list-placeholder" {% if menuItemsMarkup is not empty %}style="display: none;"{% endif %}>
+                    {{ 'Add an item to start building this menu.'|t('olivemenus') }}
+                </p>
+            </form>
+            {% if devMode %}
+                <div class="olive-menu-twig">
+                    <h3>{{ 'Twig template'|t('olivemenus') }}</h3>
+                    <code>{{ "{{ craft.olivemenus.getMenuHTML('" ~ menu.handle ~ "') }}" }}</code>
+                    <p><a href="https://github.com/OliveStudio/olivemenus/wiki/06.-Insert-Twig-snippet">{{ 'View Twig examples'|t('olivemenus') }}</a></p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
 {% endset %}

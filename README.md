@@ -1,47 +1,46 @@
-# Olivemenus plugin for Craft CMS 5.x
+<img src="src/icon.svg" alt="" width="48" height="48">
 
-Olive Studio
+# Olive Menus for Craft CMS
 
-![Olivemenus for Craft CMS. OliveStudio.net](resources/Olivemenus.jpg)
+Build navigation menus in the Craft control panel. Editors choose and arrange the links. Developers render the menu in Twig and style it to match the site.
 
-## Requirements
+- Create separate menus for a header, footer, or campaign page.
+- Combine entries, categories, assets, and Commerce products with custom links and unlinked headings.
+- Reorder and nest items, then edit labels, classes, link targets, and data attributes.
+- Manage navigation separately for each site in a multisite project.
+- Build breadcrumbs in Twig or query navigation in GraphQL.
 
-This plugin requires Craft 5.0.0-RC11 or later.
+[Craft Plugin Store](https://plugins.craftcms.com/olivemenus) · [Documentation](https://github.com/OliveStudio/olivemenus/wiki) · [Changelog](CHANGELOG.md)
 
-## Installation
+![Olive Menus editor in Craft 5, with a nested menu and the controls for adding links](https://raw.githubusercontent.com/wiki/OliveStudio/olivemenus/images/menu-editor.png)
 
-To install the plugin, follow these instructions.
+## Install
 
-1. Open your terminal and go to your Craft project:
+Olive Menus 5.x requires Craft CMS 5 and PHP 8.2 or later. Install it from the Plugin Store in Craft, or run these commands from your project directory.
 
-        cd /path/to/project
+```sh
+composer require olivestudio/craft-olivemenus
+php craft plugin/install olivemenus
+```
 
-2. Then tell Composer to load the plugin:
+## Render your first menu
 
-        composer require olivestudio/craft-olivemenus
+1. Open **Menus** in the control panel and choose **New menu**. Use `mainMenu` as the handle.
+2. Open the menu, add entries or custom links, then choose **Save menu**.
+3. Add this snippet to your layout where the navigation should appear.
 
-3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Olivemenus.
+```twig
+<nav aria-label="Main navigation">
+  {{ craft.olivemenus.getMenuHTML('mainMenu', { 'without-container': true }) }}
+</nav>
+```
 
-## Overview
+For your own markup, use `craft.olivemenus.getMenuData('mainMenu')`. The [Twig guide](https://github.com/OliveStudio/olivemenus/wiki/06.-Insert-Twig-snippet) covers custom rendering, options, breadcrumbs, and multisite lookup. For headless builds, see the [GraphQL guide](https://github.com/OliveStudio/olivemenus/wiki/10.-GraphQL).
 
-Olivemenus is an easy-to-use Craft CMS plugin which allows you to build custom menus from scratch. You can create a new menu within seconds, simply by selecting single entries, channel or structure items, or even custom links. Then all you need to do is include a Twig snippet to embed the menu in your template, and just like magic your menu appears!
+## Support and agency work
 
-You can create and manage multiple menus on your website; Olivemenus is highly customisable and it makes it easy for you to access and edit your menus once created. You can easily see all your single entries, channel items and structure items displayed in an organized manner and you can add them to your menu with a single click. It is also very easy to include your own custom or external links and even join them together in the same menu with the existing entries on your website.
+[Report a bug or suggest an improvement](https://github.com/OliveStudio/olivemenus/issues). Include your Craft and Olive Menus versions and the steps to reproduce the issue.
 
-The menu structure can be edited just by dragging the chosen entries around. It is easy to change the order of your items by moving them up or down and you can even create dropdown menus by dragging the entries to the right or indenting them.
+Working on a Craft build, upgrade, or integration for a client? [Talk to Olive Studio](https://www.olivestudio.net/) about working together.
 
-Olivemenus gives you the possibility to single out a menu by giving it an ID in order to make extra configurations to it.
-
-Another awesome and very useful feature that Olivemenus provides you with is the opportunity to assign data attributes to every element in your menu, so that more advanced events can be triggered when users click on particular menu items.
-
-## Documentation
-
-Please read the complete documentation in the [Olivemenus Wiki](https://github.com/OliveStudio/olivemenus/wiki).
-
-## Olivemenus Roadmap
-
-Some things to do, and ideas for potential features:
-
-* Release it
-
-Brought to you by [Olive Studio](https://www.olivestudio.net/)
+[MIT license](LICENSE.md)

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Olivemenus plugin for Craft CMS 5.x
  *
@@ -10,14 +11,14 @@
 
 namespace olivestudio\olivemenus\services;
 
-use olivestudio\olivemenus\models\OlivemenusItemsModel;
-use olivestudio\olivemenus\Olivemenus;
-use olivestudio\olivemenus\records\OlivemenusItemsRecord;
-
 use Craft;
 use craft\base\Component;
 use craft\elements\Entry;
-use craft\elements\Category;
+
+use craft\web\View;
+use olivestudio\olivemenus\models\OlivemenusItemsModel;
+use olivestudio\olivemenus\Olivemenus;
+use olivestudio\olivemenus\records\OlivemenusItemsRecord;
 
 /**
  * OlivemenusService Service
@@ -38,13 +39,13 @@ class OlivemenuItemsService extends Component
     // =========================================================================
     public function getSectionsWithEntries(int $site_id): mixed
     {
-        $sections = $this->getSections($site_id);
+        $sections = $this->_getSections($site_id);
 
         if ($sections) {
-            foreach($sections as $handle => $values) {
+            foreach ($sections as $handle => $values) {
                 if (!empty($sections[$handle])) {
                     foreach ($values as $index => $value) {
-                        $sections[$handle][$index]['entries'] = $this->getFirstEntriesBySection($value['handle'], $site_id);
+                        $sections[$handle][$index]['entries'] = $this->_getFirstEntriesBySection($value['handle'], $site_id);
                     }
                 }
             }
@@ -53,25 +54,27 @@ class OlivemenuItemsService extends Component
         return $sections;
     }
 
-    public function getMenuItem(int $id): mixed
+    public function getMenuItem(int $id): ?OlivemenusItemsModel
     {
         $record = OlivemenusItemsRecord::findOne([
-            'id' => $id
+            'id' => $id,
         ]);
-        return new OlivemenusItemsModel($record->getAttributes());
-    }
-
-    public function saveMenuItem(OlivemenusItemsModel $model): int
-    {
-        $record = false;
-        if (isset($model->id)) {
-            $record = OlivemenusItemsRecord::findOne( [
-                'id' => $model->id
-            ]);
+        if ($record === null) {
+            return null;
         }
 
-        if (!$record) {
-            $record = new OlivemenusItemsRecord();
+        $attributes = array_filter($record->getAttributes(), static fn (mixed $value): bool => $value !== null);
+
+        return new OlivemenusItemsModel($attributes);
+    }
+
+    public function saveMenuItem(OlivemenusItemsModel $model): ?int
+    {
+        $record = $model->id
+            ? OlivemenusItemsRecord::findOne(['id' => $model->id, 'menu_id' => $model->menu_id])
+            : new OlivemenusItemsRecord();
+        if ($record === null) {
+            return null;
         }
 
         $record->menu_id = $model->menu_id;
@@ -84,18 +87,23 @@ class OlivemenuItemsService extends Component
         $record->class_parent = $model->class_parent;
         $record->data_json = $model->data_json;
         $record->target = $model->target;
+        $record->enabled = $model->enabled;
+        $record->use_element_title = $model->use_element_title;
+        $record->hide_when_unavailable = $model->hide_when_unavailable;
 
         $save = $record->save();
-        if ( !$save ) {
-            Craft::getLogger()->log( $record->getErrors(), LOG_ERR, 'olivemenus' );
+        if (!$save) {
+            Craft::error($record->getErrors(), __METHOD__);
+            return null;
         }
-        return $record->id;
+
+        return (int)$record->id;
     }
 
     public function deleteMenuItem(int $id): mixed
     {
         $record = OlivemenusItemsRecord::findOne([
-            'id' => $id
+            'id' => $id,
         ]);
 
         if ($record) {
@@ -119,13 +127,13 @@ class OlivemenuItemsService extends Component
         return null;
     }
 
-    public function getMenuItems(int $menuId): mixed
+    public function getMenuItems(int $menuId, bool $recoverDetached = false): array
     {
         $arrMenuItems = [];
 
         $menuItems = OlivemenusItemsRecord::find()
                         ->where(['menu_id' => $menuId])
-                        ->orderBy('item_order')
+                        ->orderBy(['item_order' => SORT_ASC, 'id' => SORT_ASC])
                         ->all();
 
         foreach ($menuItems as $intKey => $objItem) {
@@ -140,67 +148,63 @@ class OlivemenuItemsService extends Component
             $arrMenuItems[$intKey]['class_parent'] = $objItem->class_parent;
             $arrMenuItems[$intKey]['data_json'] = $objItem->data_json;
             $arrMenuItems[$intKey]['target'] = $objItem->target;
+            $arrMenuItems[$intKey]['enabled'] = (bool)$objItem->enabled;
+            $arrMenuItems[$intKey]['use_element_title'] = (bool)$objItem->use_element_title;
+            $arrMenuItems[$intKey]['hide_when_unavailable'] = (bool)$objItem->hide_when_unavailable;
         }
 
         if ($arrMenuItems) {
-            return $this->sortMenuItemsByParents($arrMenuItems);
+            return $this->_sortMenuItemsByParents($arrMenuItems, $recoverDetached);
         }
         return $arrMenuItems;
     }
 
-    public function getMenuItemsAdminMarkup(int $menuId): mixed
+    public function getMenuItemsAdminMarkup(int $menuId, ?int $siteId = null): string
     {
-        $localHTML = '';
-        $arrMenuItems = $this->getMenuItems($menuId);
-
-        if ($arrMenuItems) {
-            foreach ($arrMenuItems as $menuItem) {
-                $localHTML .= $this->getItemAdminMarkup($menuItem);
-            }
+        $items = $this->getMenuItems($menuId, recoverDetached: true);
+        if (!$items) {
+            return '';
         }
-        return $localHTML;
+
+        $siteId ??= Craft::$app->getSites()->getCurrentSite()->id;
+        $elementIds = OlivemenusItemsRecord::find()
+            ->select(['entry_id'])
+            ->where(['menu_id' => $menuId])
+            ->andWhere(['>', 'entry_id', 0])
+            ->distinct()
+            ->column();
+        $menus = Olivemenus::$plugin->olivemenus;
+        $links = [];
+        foreach ($menus->getLinkedElements($elementIds, $siteId) as $id => $element) {
+            $links[$id] = [
+                'url' => $menus->getSafeLinkUrl($element->url ?? ''),
+                'title' => $element->title,
+            ];
+        }
+
+        return Craft::$app->getView()->renderTemplate(
+            'olivemenus/_menu-item',
+            ['items' => $items, 'elements' => $links],
+            View::TEMPLATE_MODE_CP,
+        );
     }
 
-    private function getSections(int $site_id): mixed
+    private function _getSections(int $siteId): array
     {
-        $sections = [];
-
-        $sections['single'] = (new \craft\db\Query())
-            ->select(["name AS name", "handle AS handle"])
-            ->from(['{{%sections}}'])
-            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
-            ->where(['type' => 'single', 'dateDeleted'=>NULL, 'siteId' => $site_id])
-            ->orderBy('name')
-            ->all();
-
-        $sections['structure'] = (new \craft\db\Query())
-            ->select(["name AS name", "handle AS handle"])
-            ->from(['{{%sections}}'])
-            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
-            ->where(['type' => 'structure', 'dateDeleted'=>NULL, 'siteId' => $site_id])
-            ->orderBy('name')
-            ->all();
-
-        $sections['channel'] = (new \craft\db\Query())
-            ->select(["name AS name", "handle AS handle"])
-            ->from(['{{%sections}}'])
-            ->leftJoin('{{%sections_sites}}', '{{%sections_sites}}.sectionId = {{%sections}}.id')
-            ->where(['type' => 'channel', 'dateDeleted'=>NULL, 'siteId' => $site_id])
-            ->orderBy('name')
-            ->all();
+        $sections = ['single' => [], 'structure' => [], 'channel' => []];
+        foreach (Craft::$app->getEntries()->getEditableSections() as $section) {
+            if (isset($section->getSiteSettings()[$siteId], $sections[$section->type])) {
+                $sections[$section->type][] = [
+                    'name' => $section->name,
+                    'handle' => $section->handle,
+                ];
+            }
+        }
 
         return $sections;
     }
 
-    private function getEntriesBySection(string $handle, int $site_id): mixed
-    {
-        return Entry::find()
-                    ->section($handle)
-                    ->siteId($site_id)
-                    ->all();
-    }
-
-    private function getFirstEntriesBySection(string $handle,int $site_id): mixed
+    private function _getFirstEntriesBySection(string $handle,int $site_id): mixed
     {
         return Entry::find()
                     ->section($handle)
@@ -208,147 +212,47 @@ class OlivemenuItemsService extends Component
                     ->one();
     }
 
-    private function sortMenuItemsByParents(array $arrMenuItems): array
+    private function _sortMenuItemsByParents(array $items, bool $recoverDetached): array
     {
-        $counter = 0;
-        $arrMenuItemsSorted = [];
-
-        if ($arrMenuItems) {
-            foreach ($arrMenuItems as $menuItem) {
-                if ($menuItem['parent_id'] == 0) {
-                    $arrMenuItemsSorted[] = $menuItem;
-                }
-            }
+        $byParent = [];
+        foreach ($items as $item) {
+            $byParent[$item['parent_id']][] = $item;
         }
 
-        if ($arrMenuItemsSorted) {
-            foreach ($arrMenuItemsSorted as $menuItem){
-                $arrMenuItemsSorted[$counter] = $this->addChildToParent($arrMenuItems,$menuItem);
-                $counter++;
-            }
+        $tree = $this->_buildMenuTree($byParent, 0);
+        if (!$recoverDetached) {
+            return $tree;
         }
-        return $arrMenuItemsSorted;
+
+        // Show legacy items with a missing or cyclic parent so the editor can repair them on save.
+        while ($byParent) {
+            $parent = array_key_first($byParent);
+            $item = array_shift($byParent[$parent]);
+            if (!$byParent[$parent]) {
+                unset($byParent[$parent]);
+            }
+
+            $item['parent_id'] = 0;
+            $children = $this->_buildMenuTree($byParent, (int)$item['id']);
+            if ($children) {
+                $item['children'] = $children;
+            }
+            $tree[] = $item;
+        }
+
+        return $tree;
     }
 
-    private function addChildToParent(mixed $arrMenuItems,mixed $menuItem): mixed
+    private function _buildMenuTree(array &$byParent, int $parentId): array
     {
-        $parent_id = $menuItem['id'];
-
-        if ($arrMenuItems) {
-            foreach ($arrMenuItems as $menuSubItem) {
-                if ($menuSubItem['parent_id'] == $parent_id) {
-                    $menuSubItem = $this->addChildToParent($arrMenuItems,$menuSubItem);
-                    $menuItem['children'][] = $menuSubItem;
-                }
+        $items = $byParent[$parentId] ?? [];
+        unset($byParent[$parentId]);
+        foreach ($items as &$item) {
+            if (isset($byParent[$item['id']])) {
+                $item['children'] = $this->_buildMenuTree($byParent, (int)$item['id']);
             }
         }
-        return $menuItem;
-    }
 
-    private function getItemAdminMarkup(mixed $menuItem): string
-    {
-        $localHTML = '';
-
-        $entry = Entry::find()
-            ->id($menuItem['entry_id'])
-            ->one();
-
-        if (!$entry) {
-            $entry = Category::find()
-                ->id($menuItem['entry_id'])
-                ->one();
-        }
-
-        $localHTML .= '<li id="menu-item-' .$menuItem['id']. '">';
-            $localHTML .= '<div>';
-                $localHTML .= '<div class="item-heading">';
-                    $localHTML .= '<span class="settings-toggle"></span>';
-                    $localHTML .= '<span class="menu-title">' . $menuItem['name'] . '</span>';
-                    $localHTML .= '<span class="delete-menu btn small" data-id="' .$menuItem['id']. '">Delete</span>';
-                $localHTML .= '</div>';
-                $localHTML .= '<div class="item-content">';
-                $localHTML .= '<input type="hidden" name="item-id" value="' .$menuItem['id']. '" />';
-                    if ($menuItem['custom_url'] == '') $localHTML .= '<input type="hidden" name="item-entry-id" value="' .$menuItem['entry_id']. '" />';
-                    $localHTML .= '<div class="inner">';
-                        $localHTML .= '<div class="row field">';
-                            $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Name') . '</label>';
-                            $localHTML .= '</div>';
-                            $localHTML .= '<div class="input">';
-                                $localHTML .= '<input class="text nicetext fullwidth" type="text" name="item-name" value="' .$menuItem['name']. '" />';
-                            $localHTML .= '</div>';
-                        $localHTML .= '</div>';
-                        if (!$menuItem['entry_id']) {
-                            $localHTML .= '<div class="row field">';
-                                $localHTML .= '<div class="heading">';
-                                    $localHTML .= '<label>' . Craft::t('olivemenus', 'Custom URL') . '</label>';
-                                $localHTML .= '</div>';
-                                $localHTML .= '<div class="input">';
-                                    $localHTML .= '<input class="text nicetext fullwidth" type="text" name="custom-url" value="' .$menuItem['custom_url']. '" />';
-                                $localHTML .= '</div>';
-                            $localHTML .= '</div>';
-                        }
-                        $localHTML .= '<div class="row field">';
-                            $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Class') . '</label>';
-                            $localHTML .= '</div>';
-                            $localHTML .= '<div class="input">';
-                                $localHTML .= '<input class="text nicetext fullwidth" type="text" name="class" value="' .$menuItem['class']. '" />';
-                            $localHTML .= '</div>';
-                        $localHTML .= '</div>';
-                        $localHTML .= '<div class="row field">';
-                            $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Class parent') . '</label>';
-                            $localHTML .= '</div>';
-                            $localHTML .= '<div class="input">';
-                                $localHTML .= '<input class="text nicetext fullwidth" type="text" name="class-parent" value="' .$menuItem['class_parent']. '" />';
-                            $localHTML .= '</div>';
-                        $localHTML .= '</div>';
-                        $localHTML .= '<div class="row field">';
-                            $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Data JSON') . '</label>';
-                            $localHTML .= '</div>';
-                            $localHTML .= '<div class="input">';
-                                $localHTML .= '<textarea class="text nicetext fullwidth" name="data-json">' .$menuItem['data_json']. '</textarea>';
-                            $localHTML .= '</div>';
-                        $localHTML .= '</div>';
-
-                        $localHTML .= '<div class="row field">';
-                            $localHTML .= '<div class="heading">';
-                                $localHTML .= '<label>' . Craft::t('olivemenus', 'Target options') . '</label>';
-                            $localHTML .= '</div>';
-                            $localHTML .= '<div class="input">';
-                                $localHTML .= '<select id="target-'.$menuItem['id'].'" class="text nicetext fullwidth" name="target">';
-                                    $localHTML .= '<option value="_self" '.(($menuItem['target']=='_self') ? 'selected' : '') .' >Open in same tab</option>';
-                                    $localHTML .= '<option value="_blank" '.(($menuItem['target']=='_blank') ? 'selected' : '') .'>Open in new tab</option>';
-                                $localHTML .= '</select>';
-                            $localHTML .= '</div>';
-                        $localHTML .= '</div>';
-
-                        if ($menuItem['custom_url'] == '') {
-                            $localHTML .= '<div class="row field">';
-                                if ($entry) {
-                                    $localHTML .= '<div class="heading">';
-                                        $localHTML .= '<label>' . Craft::t('olivemenus', 'Original') . '</label>';
-                                    $localHTML .= '</div>';
-                                    $localHTML .= '<div class="input">';
-                                        $localHTML .= '<a href="' . $entry->url . '" target="_blank">' . $entry->title . '</a>';
-                                    $localHTML .= '</div>';
-                                }
-                            $localHTML .= '</div>';
-                        }
-                    $localHTML .= '</div>';
-                $localHTML .= '</div>';
-            $localHTML .= '</div>';
-            if (isset($menuItem['children'])) {
-                $localHTML .= '<ol>';
-                    foreach ($menuItem['children'] as $child) {
-                       $localHTML .= $this->getItemAdminMarkup($child);
-                    }
-                $localHTML .= '</ol>';
-            }
-        $localHTML .= '</li>';
-
-        return $localHTML;
+        return $items;
     }
 }

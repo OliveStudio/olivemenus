@@ -16,7 +16,7 @@
 {% extends "_layouts/cp" %}
 
 {# Link for the ? icon at the bottom of the page #}
-{% set docsUrl = "OliveStudio/olivemenus/blob/master/README.md" %}
+{% set docsUrl = "https://github.com/OliveStudio/olivemenus/wiki" %}
 
 {# The title of this CP section #}
 {% set title = "Menus" %}
@@ -43,9 +43,11 @@
     {% if menus | length %}
     <table id="menu-list" class="data fullwidth collapsible">
         <thead>
+            <tr>
             <th scope="col">{{ "Name"|t('olivemenus') }}</th>
             <th scope="col">{{ "Handle"|t('olivemenus') }}</th>
-            <td class="thin"></td>
+            <th class="thin" scope="col"></th>
+            </tr>
         </thead>
         <tbody>
         {% for menu in menus %}
@@ -53,7 +55,35 @@
                 <th scope="row" data-title="{{ 'Name'|t('olivemenus') }}"><a href="{{ url('olivemenus/menu-items/' ~ menu.id) }}">{{ menu.name|t('olivemenus') }}</a></th>
                 <td data-title="{{ 'Handle'|t('olivemenus') }}"><code>{{ menu.handle }}</code></td>
                 <td class="thin">
-                    <a class="delete icon" title="{{ 'Delete'|t('olivemenus') }}" role="button"></a>
+                    {% set duplicateFormId = 'duplicate-menu-form-' ~ menu.id %}
+                    <div class="flex flex-nowrap gap-xs">
+                        <a class="btn small" href="{{ cpUrl('olivemenus/menu-edit/' ~ menu.id) }}">{{ 'Edit'|t('olivemenus') }}</a>
+                        <form id="{{ duplicateFormId }}" method="post" action="{{ cpUrl('olivemenus/' ~ objSite.handle) }}" aria-labelledby="duplicate-menu-{{ menu.id }}">
+                            {{ csrfInput() }}
+                            {{ actionInput('olivemenus/menu/duplicate-menu') }}
+                            {{ hiddenInput('menuId', menu.id) }}
+                            <button type="submit" id="duplicate-menu-{{ menu.id }}" class="btn small" aria-label="{{ 'Duplicate {name}'|t('olivemenus', {name: menu.name}) }}">{{ 'Duplicate'|t('olivemenus') }}</button>
+                        </form>
+                        {% if duplicateSites is not empty %}
+                            {{ disclosureMenu([{
+                                heading: 'Linked content must exist on the destination site.'|t('olivemenus'),
+                                items: duplicateSites|map(site => {
+                                    label: site.name,
+                                    attributes: {
+                                        type: 'submit',
+                                        form: duplicateFormId,
+                                        name: 'targetSiteId',
+                                        value: site.id,
+                                    },
+                                }),
+                            }], {
+                                buttonLabel: 'Copy to site'|t('olivemenus'),
+                                hiddenLabel: 'Copy to site for {name}'|t('olivemenus', {name: menu.name}),
+                                buttonAttributes: {class: ['small']},
+                            }) }}
+                        {% endif %}
+                        <button type="button" class="btn small delete" aria-label="{{ 'Delete {name}'|t('olivemenus', {name: menu.name}) }}">{{ 'Delete'|t('olivemenus') }}</button>
+                    </div>
                 </td>
             </tr>
         {% endfor %}
@@ -61,8 +91,3 @@
     </table>
     {% endif %}
 {% endset %}
-{% js %}
-    window.csrfTokenName = "{{ craft.app.config.general.csrfTokenName|e('js') }}";
-    window.csrfTokenValue = "{{ craft.app.request.csrfToken|e('js') }}";
-	window.siteUrl = "{{ url() }}";
-{% endjs %}

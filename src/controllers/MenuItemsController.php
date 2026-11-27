@@ -1,149 +1,219 @@
 <?php
-/**
- * Olivemenus plugin for Craft CMS 5.x
- *
- * OliveStudio menu
- *
- * @link      http://www.olivestudio.net/
- * @copyright Copyright (c) 2018 Olivestudio
- */
 
 namespace olivestudio\olivemenus\controllers;
 
+use Craft;
+use craft\helpers\UrlHelper;
+use craft\web\Response;
+use JsonException;
 use olivestudio\olivemenus\assetbundles\olivemenus\OlivemenuItemsAsset;
 use olivestudio\olivemenus\models\OlivemenusItemsModel;
 use olivestudio\olivemenus\Olivemenus;
+use olivestudio\olivemenus\records\OlivemenusItemsRecord;
+use RuntimeException;
+use yii\db\Exception as DbException;
+use yii\web\BadRequestHttpException;
 
-use Craft;
-use craft\web\Controller;
-
-/**
- * MenuItems Controller
- *
- * Generally speaking, controllers are the middlemen between the front end of
- * the CP/website and your plugin’s services. They contain action methods which
- * handle individual tasks.
- *
- * A common pattern used throughout Craft involves a controller action gathering
- * post data, saving it on a model, passing the model off to a service, and then
- * responding to the request appropriately depending on the service method’s response.
- *
- * Action methods begin with the prefix “action”, followed by a description of what
- * the method does (for example, actionSaveIngredient()).
- *
- * https://craftcms.com/docs/plugins/controllers
- *
- * @author    Olivestudio
- * @package   Olivemenus
- * @since     1.0.0
- */
-class MenuItemsController extends Controller
+class MenuItemsController extends MenuAdminController
 {
-
-    // Protected Properties
-    // =========================================================================
-
-    /**
-     * @var    bool|array Allows anonymous access to this controller's actions.
-     *         The actions must be in 'kebab-case'
-     * @access protected
-     */
-    protected array|bool|int $allowAnonymous = false;
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * Handle a request going to our plugin's edit action URL,
-     * e.g.: actions/olivemenus/menu-items
-     *
-     * @return mixed
-     */
-    public function actionEdit(int $menuId = null): mixed
+    public function actionEdit(?int $menuId = null): Response
     {
+        $menu = $this->editableMenu($this->positiveId($menuId));
+        $items = Olivemenus::$plugin->olivemenuItems;
         $this->view->registerAssetBundle(OlivemenuItemsAsset::class);
-        $menu = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
-        $data['menu'] = $menu;
-        $data['sections'] = Olivemenus::$plugin->olivemenuItems->getSectionsWithEntries($menu->site_id);
-        $data['menuItemsMarkup'] = Olivemenus::$plugin->olivemenuItems->getMenuItemsAdminMarkup($menuId);
-        $data['categories'] = Craft::$app
-                                   ->categories
-                                   ->getAllGroups();
-        
-        $objSite = Craft::$app->getSites()->getSiteById($menu->site_id);
-        if (!$objSite) {
-            $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
-            $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        }
-        $data['objSite'] = $objSite;
-        return $this->renderTemplate('olivemenus/_menu-items', $data);
+
+        return $this->renderTemplate('olivemenus/_menu-items', [
+            'menu' => $menu,
+            'elementTypes' => Olivemenus::$plugin->olivemenus->getLinkableElementTypes(),
+            'menuItemsMarkup' => $items->getMenuItemsAdminMarkup($menu->id, $menu->site_id),
+            'objSite' => $this->editableSite($menu->site_id),
+        ]);
     }
 
-    /**
-     * Handle a request going to our plugin's actionSave URL,
-     * e.g.: actions/olivemenus/menu-items/save-menu-items
-     *
-     * @return void
-     */
-    public function actionSaveMenuItems(): void
+    public function actionSaveMenuItems(): Response
     {
         $this->requirePostRequest();
-        $intMenuId = Craft::$app->request->getBodyParams()['menu-id'];
-        $strMenuItems = Craft::$app->request->getBodyParams()['menu-items-serialized'];
+        $menu = $this->editableMenu($this->positiveId($this->request->getRequiredBodyParam('menu-id')));
+        $redirect = UrlHelper::cpUrl('olivemenus/menu-items/' . $menu->id);
 
-        $arrMenuItems = json_decode($strMenuItems, true);
+        try {
+            $submittedItems = $this->_submittedItems();
+            $deletedIds = $this->_deletedItemIds();
 
-        if (!empty($arrMenuItems)) {
-            foreach($arrMenuItems as $order=> $menuItem) {
-                $parent_id = 0;
-
-                if (isset($menuItem['parent-id'])){
-                    $parent_id = $menuItem['parent-id'];
-
-                    foreach ($arrMenuItems as $element) {
-                        if (isset($element['item-id']['html']) && $element['item-id']['html'] == $parent_id) {
-                            $parent_id = $element['menu-item-db-id'];
-                            $arrMenuItems[$order]['parent-id'] = $parent_id;
-                            break;
-                        }
-                    }
+            $db = Craft::$app->getDb();
+            $db->transaction(function() use ($db, $menu, $submittedItems, $deletedIds): void {
+                $menuId = $db->createCommand(
+                    'SELECT [[id]] FROM {{%olivemenus}} WHERE [[id]] = :id FOR UPDATE',
+                    [':id' => $menu->id],
+                )->queryScalar();
+                if ($menuId === false) {
+                    throw new BadRequestHttpException(Craft::t('olivemenus', 'The menu no longer exists.'));
                 }
-                
-                if ($menuItem['item-id']['db'] != null) {
-                    $menuItemModel = Olivemenus::$plugin->olivemenuItems->getMenuItem($menuItem['item-id']['db']);
-                } else {
-                    $menuItemModel = new OlivemenusItemsModel();
-                }
-                $arrData['id']= $menuItem['item-id']['db'];
-                $arrData['menu_id']= $intMenuId;
-                $arrData['parent_id']= $parent_id;
-                $arrData['item_order']= $order;
-                $arrData['name']= $menuItem['name'];
-                $arrData['entry_id']= (isset($menuItem['entry-id']) ? $menuItem['entry-id'] : '');
-                $arrData['custom_url']= (isset($menuItem['custom-url']) ? $menuItem['custom-url'] : '');
-                $arrData['class']= (isset($menuItem['class']) ? $menuItem['class'] : '');
-                $arrData['class_parent']= (isset($menuItem['class-parent']) ? $menuItem['class-parent'] : '');
-                $arrData['data_json']= (isset($menuItem['data-json']) ? $menuItem['data-json'] : '');
-                $arrData['target']= (isset($menuItem['target']) ? $menuItem['target'] : '');
+                $this->_saveItems((int)$menuId, $submittedItems, $deletedIds);
+            });
+        } catch (BadRequestHttpException $exception) {
+            return $this->_itemSaveFailure($exception->getMessage(), $redirect);
+        } catch (DbException|RuntimeException $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
 
-                $menuItemModel->setAttributes($arrData);
+            return $this->_itemSaveFailure(
+                Craft::t('olivemenus', 'Menu items could not be saved. Please try again.'),
+                $redirect,
+            );
+        }
 
-                if ($menuItemModel->validate()) {
-                    $menuItemDbId = Olivemenus::$plugin->olivemenuItems->saveMenuItem($menuItemModel);
-                    if (is_numeric($menuItemDbId)) $arrMenuItems[$order]['menu-item-db-id'] = $menuItemDbId;
+        Olivemenus::$plugin->olivemenus->invalidateMenuCache();
+        $message = Craft::t('olivemenus', 'Menu items saved successfully.');
+        if ($this->request->getAcceptsJson()) {
+            $this->setSuccessFlash($message);
+        }
+
+        return $this->asSuccess($message, redirect: $redirect);
+    }
+
+    private function _itemSaveFailure(string $message, string $redirect): Response
+    {
+        if ($this->request->getAcceptsJson()) {
+            return $this->asFailure($message);
+        }
+
+        $this->setFailFlash($message);
+
+        return $this->redirect($redirect);
+    }
+
+    private function _submittedItems(): array
+    {
+        $serialized = $this->request->getRequiredBodyParam('menu-items-serialized');
+
+        if (is_string($serialized)) {
+            try {
+                $items = json_decode($serialized, true, flags: JSON_THROW_ON_ERROR);
+                if (is_array($items) && array_is_list($items)) {
+                    return $items;
                 }
+            } catch (JsonException) {
+                // Handle invalid JSON the same way as an invalid list.
             }
         }
 
-        $menuItemsDeleted = Craft::$app->request->getBodyParams()['menu-items-deleted'];
-        if (!empty($menuItemsDeleted)) {
-            $arrItems = explode(',', $menuItemsDeleted);
-            if (!empty($arrItems)) {
-                foreach ($arrItems as $intVal) {
-                    Olivemenus::$plugin->olivemenuItems->deleteMenuItem($intVal);
-                }
+        throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid menu items.'));
+    }
+
+    private function _deletedItemIds(): array
+    {
+        $deletedItems = $this->request->getBodyParam('menu-items-deleted', '');
+
+        if (!is_string($deletedItems)) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid deleted menu items.'));
+        }
+
+        if ($deletedItems === '') {
+            return [];
+        }
+
+        return array_unique(array_map($this->positiveId(...), explode(',', $deletedItems)));
+    }
+
+    private function _saveItems(int $menuId, array $submittedItems, array $deletedIds): void
+    {
+        $service = Olivemenus::$plugin->olivemenuItems;
+        $existingItems = OlivemenusItemsRecord::find()
+            ->where(['menu_id' => $menuId])
+            ->indexBy('id')
+            ->all();
+        $deletedIds = array_fill_keys($deletedIds, true);
+        $resolvedParentIds = [];
+        $savedIds = [];
+
+        if (!empty(array_diff_key($deletedIds, $existingItems))) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'A menu item is missing or belongs to another menu. Reload and try again.'));
+        }
+
+        foreach ($submittedItems as $order => $item) {
+            if (!is_array($item) || !is_array($item['item-id'] ?? null)) {
+                throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid menu item.'));
+            }
+
+            $clientId = $this->positiveId($item['item-id']['html'] ?? null);
+            $savedId = $this->optionalId($item['item-id']['db'] ?? null);
+            $parentReference = $item['parent-id'] ?? null;
+            $parentClientId = $parentReference === 0 || $parentReference === '0'
+                ? null
+                : $this->optionalId($parentReference);
+
+            if (isset($resolvedParentIds[$clientId]) || ($parentClientId !== null && !isset($resolvedParentIds[$parentClientId]))) {
+                throw new BadRequestHttpException(Craft::t('olivemenus', 'The menu item order is invalid. Reload and try again.'));
+            }
+
+            if ($savedId !== null && (!isset($existingItems[$savedId]) || isset($deletedIds[$savedId]) || isset($savedIds[$savedId]))) {
+                throw new BadRequestHttpException(Craft::t('olivemenus', 'A menu item is missing or belongs to another menu. Reload and try again.'));
+            }
+
+            $existingItem = $existingItems[$savedId] ?? null;
+            $entryId = $item['entry-id'] ?? null;
+            $itemModel = new OlivemenusItemsModel([
+                'id' => $savedId ?? 0,
+                'menu_id' => $menuId,
+                'parent_id' => $resolvedParentIds[$parentClientId] ?? 0,
+                'item_order' => $order,
+                'name' => $this->_itemText($item, 'name'),
+                'entry_id' => $entryId === 0 || $entryId === '0' ? 0 : ($this->optionalId($entryId) ?? 0),
+                'custom_url' => $this->_itemText($item, 'custom-url'),
+                'class' => $this->_itemText($item, 'class'),
+                'class_parent' => $this->_itemText($item, 'class-parent'),
+                'data_json' => $this->_itemText($item, 'data-json'),
+                'target' => $this->_itemText($item, 'target'),
+                'enabled' => $this->_itemFlag($item, 'item-enabled', (bool)($existingItem->enabled ?? true)),
+                'use_element_title' => $this->_itemFlag($item, 'item-use-element-title', (bool)($existingItem->use_element_title ?? false)),
+                'hide_when_unavailable' => $this->_itemFlag($item, 'item-hide-when-unavailable', (bool)($existingItem->hide_when_unavailable ?? $entryId)),
+            ]);
+
+            if (!$itemModel->validate()) {
+                throw new BadRequestHttpException(Craft::t('olivemenus', 'Check the settings for menu item {number}.', ['number' => $order + 1]));
+            }
+
+            $storedId = $service->saveMenuItem($itemModel);
+            if ($storedId === null) {
+                throw new RuntimeException('Menu item could not be saved.');
+            }
+
+            $resolvedParentIds[$clientId] = $storedId;
+            $savedIds[$storedId] = true;
+        }
+
+        if (array_diff_key($existingItems, $savedIds, $deletedIds)) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'The menu has changed. Reload and try again.'));
+        }
+
+        foreach (array_keys($deletedIds) as $deletedId) {
+            if (!$service->deleteMenuItem($deletedId)) {
+                throw new RuntimeException('Menu item could not be deleted.');
             }
         }
-        Craft::$app->getSession()->setNotice(Craft::t('olivemenus', 'Menu items saved successfully.'));
+    }
+
+    private function _itemText(array $item, string $key): string
+    {
+        $value = $item[$key] ?? '';
+
+        if (!is_string($value)) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid menu item text.'));
+        }
+
+        return $value;
+    }
+
+    private function _itemFlag(array $item, string $key, bool $default): bool
+    {
+        if (!array_key_exists($key, $item)) {
+            return $default;
+        }
+
+        if (!is_bool($item[$key])) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid menu item settings.'));
+        }
+
+        return $item[$key];
     }
 }

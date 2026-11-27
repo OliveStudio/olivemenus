@@ -2,9 +2,7 @@
 
 namespace olivestudio\olivemenus\migrations;
 
-
 use Craft;
-use craft\config\DbConfig;
 use craft\db\Migration;
 
 /**
@@ -87,7 +85,7 @@ class Install extends Migration
                     'id' => $this->primaryKey(),
                     'name' => $this->string(255)->notNull()->defaultValue(''),
                     'handle' => $this->string(255)->notNull()->defaultValue(''),
-					'site_id' => $this->integer(11),
+                    'site_id' => $this->integer(11),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
@@ -113,6 +111,9 @@ class Install extends Migration
                     'class_parent' => $this->string(255),
                     'data_json' => $this->string(255),
                     'target' => $this->string(255),
+                    'enabled' => $this->boolean()->notNull()->defaultValue(true),
+                    'use_element_title' => $this->boolean()->notNull()->defaultValue(false),
+                    'hide_when_unavailable' => $this->boolean()->notNull()->defaultValue(false),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
@@ -129,34 +130,9 @@ class Install extends Migration
      */
     protected function createIndexes(): void
     {
-        // olivemenus table
-        $this->createIndex(
-            $this->db->getIndexName(
-                '{{%olivemenus}}',
-                'name',
-                true
-            ),
-            '{{%olivemenus}}',
-            'name',
-            true
-        );
-        $this->createIndex(
-            $this->db->getIndexName(
-                '{{%olivemenus}}',
-                'handle',
-                true
-            ),
-            '{{%olivemenus}}',
-            'handle',
-            true
-        );
-        // Additional commands depending on the db driver
-        switch ($this->driver) {
-            case DbConfig::DRIVER_MYSQL:
-                break;
-            case DbConfig::DRIVER_PGSQL:
-                break;
-        }
+        $table = '{{%olivemenus}}';
+        $this->createIndex(null, $table, ['name', 'site_id'], true);
+        $this->createIndex(null, $table, ['handle', 'site_id'], true);
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Olivemenus plugin for Craft CMS 5.x
  *
@@ -10,7 +11,6 @@
 
 namespace olivestudio\olivemenus\assetbundles\olivemenus;
 
-use Craft;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
@@ -54,7 +54,6 @@ class OlivemenuItemsAsset extends AssetBundle
         // when this asset bundle is registered
         $this->js = [
             'js/jquery-ui.js',
-            'js/jquery.filterList.min.js',
             'js/jquery.mjs.nestedSortable.js',
             'js/MenuItem.js',
         ];

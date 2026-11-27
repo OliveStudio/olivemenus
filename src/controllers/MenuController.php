@@ -1,212 +1,197 @@
 <?php
-/**
- * Olivemenus plugin for Craft CMS 5.x
- *
- * OliveStudio menu
- *
- * @link      http://www.olivestudio.net/
- * @copyright Copyright (c) 2018 Olivestudio
- */
 
 namespace olivestudio\olivemenus\controllers;
 
+use Craft;
+use craft\helpers\UrlHelper;
+use craft\models\Site;
+use craft\web\Response;
 use olivestudio\olivemenus\assetbundles\olivemenus\OlivemenusAsset;
 use olivestudio\olivemenus\models\OlivemenusModel;
 use olivestudio\olivemenus\Olivemenus;
+use olivestudio\olivemenus\services\DuplicateMenuService;
+use RuntimeException;
+use yii\db\Exception as DbException;
+use yii\db\IntegrityException;
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 
-use Craft;
-use craft\web\Controller;
-
-/**
- * Menu Controller
- *
- * Generally speaking, controllers are the middlemen between the front end of
- * the CP/website and your plugin’s services. They contain action methods which
- * handle individual tasks.
- *
- * A common pattern used throughout Craft involves a controller action gathering
- * post data, saving it on a model, passing the model off to a service, and then
- * responding to the request appropriately depending on the service method’s response.
- *
- * Action methods begin with the prefix “action”, followed by a description of what
- * the method does (for example, actionSaveIngredient()).
- *
- * https://craftcms.com/docs/plugins/controllers
- *
- * @author    Olivestudio
- * @package   Olivemenus
- * @since     1.0.0
- */
-class MenuController extends Controller
+class MenuController extends MenuAdminController
 {
-
-    // Protected Properties
-    // =========================================================================
-
-    /**
-     * @var    bool|array Allows anonymous access to this controller's actions.
-     *         The actions must be in 'kebab-case'
-     * @access protected
-     */
-    protected array|int|bool $allowAnonymous = false;
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * Handle a request going to our plugin's index action URL,
-     * e.g.: actions/olivemenus/menu
-     *
-     * @return mixed
-     */
-    public function actionIndex(string $siteHandle = null): mixed
+    public function actionIndex(?string $siteHandle = null): Response
     {
-        $siteHandle = $siteHandle ?? Craft::$app->getSites()->currentSite->handle;
-
-        $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        if (!$objSite) {
-            $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
-            $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        }
-        $this->view->registerAssetBundle(OlivemenusAsset::class);
-        $data['menus'] = Olivemenus::$plugin->olivemenus->getAllMenus($objSite->id);
-        $data['objSite'] = $objSite;
-
-        return $this->renderTemplate('olivemenus/_index', $data);
-    }
-
-    /**
-     * Handle a request going to our plugin's actionMenuNew URL,
-     * e.g.: actions/olivemenus/menu/menu-new
-     *
-     * @return mixed
-     */
-    public function actionMenuNew(string $siteHandle): mixed
-    {
-        $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        if (!$objSite) {
-            $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
-            $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        }
-        $data['objSite'] = $objSite;
-
+        $site = $this->siteByHandle($siteHandle);
         $this->view->registerAssetBundle(OlivemenusAsset::class);
 
-        return $this->renderTemplate('olivemenus/_menu-new', $data);
+        $duplicateSites = array_filter(
+            Craft::$app->getSites()->getEditableSites(),
+            static fn (Site $candidate): bool => $candidate->id !== $site->id,
+        );
+
+        return $this->renderTemplate('olivemenus/_index', [
+            'menus' => Olivemenus::$plugin->olivemenus->getAllMenus($site->id),
+            'objSite' => $site,
+            'duplicateSites' => $duplicateSites,
+        ]);
     }
-    /**
-     * Handle a request going to our plugin's actionSaveMenu URL,
-     * e.g.: actions/olivemenus/menu/save-menu
-     *
-     * @return mixed
-     */
-    public function actionSaveMenu(): mixed
+
+    public function actionMenuNew(string $siteHandle): Response
+    {
+        return $this->renderTemplate('olivemenus/_menu-new', [
+            'objSite' => $this->siteByHandle($siteHandle),
+        ]);
+    }
+
+    public function actionSaveMenu(): Response
     {
         $this->requirePostRequest();
-        if (isset(Craft::$app->request->getBodyParams()['data']['id'])) {
-            $model = Olivemenus::$plugin->olivemenus->getMenuById(Craft::$app->request->getBodyParams()['data']['id']);
+        $data = $this->menuFormData();
+        $menuId = $this->optionalId($data['id'] ?? null);
+
+        if ($menuId === null) {
+            $site = $this->editableSite($this->positiveId($data['site_id'] ?? null));
+            $menu = new OlivemenusModel(['site_id' => $site->id]);
         } else {
-            $model = new OlivemenusModel();
+            $menu = $this->editableMenu($menuId);
+            $site = $this->editableSite($menu->site_id);
         }
 
-        $model->setAttributes(Craft::$app->request->getBodyParams()['data']);
-
-        if (!$model->validate()) {
-            Craft::$app->getSession()->setError(Craft::t('olivemenus', 'Validation errors have occured.'));
-            
-            $objSite = Craft::$app->getSites()->getSiteById($model->site_id);
-            if (!$objSite) {
-                $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
-                $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-            }
-
-            return $this->renderTemplate('olivemenus/_menu-new', [
-                'menu' => $model,
-                'errors' => $model->getErrors(),
-                'objSite' => $objSite
-            ]);
-        } else {
-            Olivemenus::$plugin->olivemenus->saveMenu($model);
-            Craft::$app->getSession()->setNotice(Craft::t('olivemenus', 'Menu saved successfully.'));
-
-            $objSite = Craft::$app->getSites()->getSiteById($model->site_id);
-            if (!$objSite) {
-                $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
-            } else {
-                $siteHandle = $objSite->handle;
-            }
-            return $this->redirect("olivemenus/$siteHandle");
+        if ($this->saveMenu($menu, $data)) {
+            return $this->redirect(UrlHelper::cpUrl('olivemenus/' . $site->handle));
         }
 
+        return $this->renderTemplate('olivemenus/_menu-new', [
+            'menu' => $menu,
+            'errors' => $menu->getErrors(),
+            'objSite' => $site,
+        ]);
     }
 
-    public function actionDeleteMenu(): mixed
+    public function actionDeleteMenu(?int $menuId = null): ?Response
     {
-        if (Craft::$app->request->getIsAjax()) {
-            $this->requirePostRequest();
-            $this->requireAcceptsJson();
+        $this->requirePostRequest();
+        $menu = $this->editableMenu($this->positiveId($this->request->getBodyParam('menuID', $menuId)));
+        $site = $this->editableSite($menu->site_id);
+        $saved = Olivemenus::$plugin->olivemenus->deleteMenuById($menu->id);
 
-            if (Olivemenus::$plugin->olivemenus->deleteMenuById(Craft::$app->request->post('menuID'))) {
-                // Return data
-                $returnData['success'] = true;
-                return $this->asJson($returnData);
-            };
-        } else {
-            $menuId = Craft::$app->request->getSegment(3);
-
-            if ($menuId) {
-                $menu = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
-                if (Olivemenus::$plugin->olivemenus->deleteMenuById($menuId)) {
-                    Craft::$app->getSession()->setNotice(Craft::t('olivemenus', 'Menu deleted successfully.'));
-                } else {
-                    Craft::$app->getSession()->setError(Craft::t('olivemenus', 'An error occurred while deleting menu.'));
-                }
-                $objSite = Craft::$app->getSites()->getSiteById($menu->site_id);
-                if (!$objSite) {
-                    $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
-                } else {
-                    $siteHandle = $objSite->handle;
-                }
-                return $this->redirect("olivemenus/$siteHandle");
-            }
-
-            return $this->redirect("olivemenus");
+        if ($this->request->getAcceptsJson()) {
+            return $saved
+                ? $this->asSuccess(Craft::t('olivemenus', 'Menu deleted successfully.'), ['success' => true])
+                : $this->asFailure(Craft::t('olivemenus', 'An error occurred while deleting the menu.'));
         }
+
+        if ($saved) {
+            $this->setSuccessFlash(Craft::t('olivemenus', 'Menu deleted successfully.'));
+        } else {
+            $this->setFailFlash(Craft::t('olivemenus', 'An error occurred while deleting the menu.'));
+        }
+
+        return $this->redirect(UrlHelper::cpUrl('olivemenus/' . $site->handle));
     }
 
-    public function actionMenuEdit(int $menuId = null): mixed 
+    public function actionDuplicateMenu(): Response
     {
-        if ($menuId) {
-            $menu = Olivemenus::$plugin->olivemenus->getMenuById($menuId);
-            $arrData['menu'] = $menu;
-            
-            if (isset(Craft::$app->request->getBodyParams()['data']['id'])) {
-                $model = Olivemenus::$plugin->olivemenus->getMenuById(Craft::$app->request->getBodyParams()['data']['id']);
-                $model->setAttributes(Craft::$app->request->getBodyParams()['data']);
+        $this->requirePostRequest();
 
-                if (!$model->validate()) {
-                    Craft::$app->getSession()->setError(Craft::t('olivemenus', 'Validation errors have occured.'));
-                    $arrData['menu'] = $model;
-                    $arrData['errors'] = $model->getErrors();
-                    $arrData['originalMenu'] = $menu;
-                } else {
-                    Olivemenus::$plugin->olivemenus->saveMenu($model);
-                    Craft::$app->getSession()->setNotice(Craft::t('olivemenus', 'Menu saved successfully.'));
-                    
-                    $arrData['menu'] = $model;
-                }
-            }
+        $menu = $this->editableMenu($this->positiveId($this->request->getRequiredBodyParam('menuId')));
+        $site = $this->editableSite($menu->site_id);
+        $targetSiteId = $this->optionalId($this->request->getBodyParam('targetSiteId'));
+        $targetSite = $targetSiteId === null ? $site : $this->editableSite($targetSiteId);
 
-            $objSite = Craft::$app->getSites()->getSiteById($menu->site_id);
-            if (!$objSite) {
-                $siteHandle = Craft::$app->getSites()->getPrimarySite()->handle;
-                $objSite = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-            }
-            $arrData['objSite'] = $objSite;
+        try {
+            $duplicateId = (new DuplicateMenuService())->duplicate($menu, $targetSite->id);
+        } catch (DbException|RuntimeException $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
+            $this->setFailFlash(Craft::t('olivemenus', 'The menu could not be duplicated.'));
 
-            return $this->renderTemplate('olivemenus/_menu-edit', $arrData);
+            return $this->redirect(UrlHelper::cpUrl('olivemenus/' . $site->handle));
         }
 
-        return null;
+        $this->setSuccessFlash($targetSite->id === $site->id
+            ? Craft::t('olivemenus', 'Menu duplicated.')
+            : Craft::t('olivemenus', 'Menu duplicated to {site}.', ['site' => $targetSite->getName()]));
+
+        return $this->redirect(UrlHelper::cpUrl('olivemenus/menu-items/' . $duplicateId));
+    }
+
+    public function actionMenuEdit(?int $menuId = null): Response
+    {
+        $isPost = $this->request->getIsPost();
+        $data = $isPost ? $this->menuFormData() : [];
+        $submittedId = $this->optionalId($data['id'] ?? null);
+
+        if ($menuId !== null && $submittedId !== null && $menuId !== $submittedId) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'The menu ID does not match.'));
+        }
+
+        $menu = $this->editableMenu($this->positiveId($menuId ?? $submittedId));
+        $site = $this->editableSite($menu->site_id);
+        $originalMenu = clone $menu;
+
+        if ($isPost && $this->saveMenu($menu, $data)) {
+            return $this->redirect(UrlHelper::cpUrl('olivemenus/menu-edit/' . $menu->id));
+        }
+
+        return $this->renderTemplate('olivemenus/_menu-edit', [
+            'menu' => $menu,
+            'errors' => $menu->getErrors(),
+            'originalMenu' => $originalMenu,
+            'objSite' => $site,
+        ]);
+    }
+
+    private function siteByHandle(?string $siteHandle): Site
+    {
+        $sites = Craft::$app->getSites();
+
+        if ($siteHandle !== null) {
+            $site = $sites->getSiteByHandle($siteHandle);
+
+            if ($site !== null) {
+                return $this->editableSite($site->id);
+            }
+        }
+
+        $site = $sites->getCurrentSite();
+        if (in_array($site->id, $sites->getEditableSiteIds(), true)) {
+            return $site;
+        }
+
+        return $sites->getEditableSites()[0] ?? throw new ForbiddenHttpException();
+    }
+
+    private function menuFormData(): array
+    {
+        $data = $this->request->getRequiredBodyParam('data');
+
+        if (!is_array($data)) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid menu data.'));
+        }
+
+        return $data;
+    }
+
+    private function saveMenu(OlivemenusModel $menu, array $data): bool
+    {
+        $menu->name = is_string($data['name'] ?? null) ? trim($data['name']) : '';
+        $menu->handle = is_string($data['handle'] ?? null) ? trim($data['handle']) : '';
+
+        if (!$menu->validate()) {
+            $this->setFailFlash(Craft::t('olivemenus', 'Please check the highlighted fields.'));
+            return false;
+        }
+
+        try {
+            if (Olivemenus::$plugin->olivemenus->saveMenu($menu)) {
+                $this->setSuccessFlash(Craft::t('olivemenus', 'Menu saved successfully.'));
+                return true;
+            }
+        } catch (IntegrityException $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
+        }
+
+        $this->setFailFlash(Craft::t('olivemenus', 'The menu could not be saved. Please try again.'));
+
+        return false;
     }
 }

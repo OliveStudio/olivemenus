@@ -5,6 +5,7 @@
  *
  * Depends on:
  *	 jquery.ui.sortable.js 1.10+
+ * Olive Menus patch: maintain drag direction state for jQuery UI Sortable 1.14.
  *
  * Copyright (c) 2010-2016 Manuele J Sarfatti and contributors
  * Licensed under the MIT License
@@ -263,6 +264,12 @@
 			level = this._getLevel(this.placeholder);
 			childLevels = this._getChildLevels(this.helper);
 			newList = document.createElement(o.listType);
+
+			// Sortable 1.14 uses this state in its inherited intersection checks.
+			this.dragDirection = {
+				vertical: this._getDragVerticalDirection(),
+				horizontal: this._getDragHorizontalDirection()
+			};
 
 			//Rearrange
 			for (i = this.items.length - 1; i >= 0; i--) {

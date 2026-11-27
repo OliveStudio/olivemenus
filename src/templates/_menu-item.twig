@@ -1,0 +1,112 @@
+{% import _self as menuItems %}
+
+{{ menuItems.render(items, elements) }}
+
+{% macro render(items, elements) %}
+    {% import _self as menuItems %}
+    {% import "_includes/forms" as forms %}
+    {% for item in items %}
+        {% set element = elements[item.entry_id] ?? null %}
+        {% set settingsId = 'menu-item-settings-' ~ item.id %}
+        <li id="menu-item-{{ item.id }}">
+            <div>
+                <div class="item-heading">
+                    <button type="button" class="settings-toggle"
+                        aria-label="{{ 'Item settings'|t('olivemenus') }}"
+                        aria-expanded="false" aria-controls="{{ settingsId }}"></button>
+                    <span class="menu-title">{{ item.name }}</span>
+                    <button type="button" class="delete-menu btn small"
+                        aria-label="{{ 'Delete {name}'|t('olivemenus', { name: item.name }) }}">
+                        {{ 'Delete'|t('olivemenus') }}
+                    </button>
+                </div>
+                <div class="item-content" id="{{ settingsId }}">
+                    {{ hiddenInput('item-id', item.id) }}
+                    {% if item.entry_id %}
+                        {{ hiddenInput('item-entry-id', item.entry_id) }}
+                    {% endif %}
+                    <div class="inner">
+                        {{ forms.textField({
+                            label: 'Link text'|t('olivemenus'),
+                            id: settingsId ~ '-name',
+                            name: 'item-name',
+                            value: item.name,
+                            maxlength: 255,
+                            required: true,
+                        }) }}
+                        {% if item.entry_id %}
+                            {% if element and element.url %}
+                                <p><a href="{{ element.url }}" target="_blank" rel="noopener">{{ element.title }}</a></p>
+                            {% else %}
+                                <p class="light">{{ 'This linked element is unavailable on this site.'|t('olivemenus') }}</p>
+                            {% endif %}
+                            {{ forms.checkboxField({
+                                label: 'Use the linked element title'|t('olivemenus'),
+                                id: settingsId ~ '-use-title',
+                                name: 'item-use-element-title',
+                                checked: item.use_element_title,
+                            }) }}
+                            {{ forms.checkboxField({
+                                label: 'Hide when linked content is unavailable'|t('olivemenus'),
+                                id: settingsId ~ '-hide-unavailable',
+                                name: 'item-hide-when-unavailable',
+                                checked: item.hide_when_unavailable,
+                            }) }}
+                        {% else %}
+                            {{ forms.textField({
+                                label: 'URL'|t('olivemenus'),
+                                id: settingsId ~ '-url',
+                                name: 'custom-url',
+                                placeholder: '/contact',
+                                value: item.custom_url,
+                                maxlength: 255,
+                            }) }}
+                        {% endif %}
+                        {{ forms.checkboxField({
+                            label: 'Show on the website'|t('olivemenus'),
+                            id: settingsId ~ '-enabled',
+                            name: 'item-enabled',
+                            checked: item.enabled,
+                        }) }}
+                        {{ forms.selectField({
+                            label: 'Open link in'|t('olivemenus'),
+                            id: settingsId ~ '-target',
+                            name: 'target',
+                            options: {
+                                '_self': 'Same tab'|t('olivemenus'),
+                                '_blank': 'New tab'|t('olivemenus'),
+                            },
+                            value: item.target,
+                        }) }}
+                        {{ forms.textField({
+                            label: 'Link CSS class'|t('olivemenus'),
+                            id: settingsId ~ '-class',
+                            name: 'class',
+                            value: item.class,
+                            maxlength: 255,
+                        }) }}
+                        {{ forms.textField({
+                            label: 'List item CSS class'|t('olivemenus'),
+                            id: settingsId ~ '-parent-class',
+                            name: 'class-parent',
+                            value: item.class_parent,
+                            maxlength: 255,
+                        }) }}
+                        {{ forms.textareaField({
+                            label: 'Link attributes'|t('olivemenus'),
+                            instructions: 'Add one data or ARIA attribute per line, in the form name: value.'|t('olivemenus'),
+                            id: settingsId ~ '-attributes',
+                            name: 'data-json',
+                            placeholder: 'data-tracking: main-menu',
+                            value: item.data_json,
+                            maxlength: 255,
+                        }) }}
+                    </div>
+                </div>
+            </div>
+            {% if item.children ?? [] %}
+                <ol>{{ menuItems.render(item.children, elements) }}</ol>
+            {% endif %}
+        </li>
+    {% endfor %}
+{% endmacro %}

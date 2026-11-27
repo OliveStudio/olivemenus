@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Olivemenus plugin for Craft CMS 5.x
  *
@@ -10,9 +11,9 @@
 
 namespace olivestudio\olivemenus\variables;
 
-use olivestudio\olivemenus\Olivemenus;
-
 use Craft;
+
+use olivestudio\olivemenus\Olivemenus;
 use Twig\Markup;
 
 /**
@@ -70,6 +71,11 @@ class OlivemenusVariable
      *
      * @return Mixed The data of the menu you wrote or a string with a notice.
      */
+
+    public function getBreadcrumbs(string $handle, ?int $siteId = null): array
+    {
+        return Olivemenus::$plugin->olivemenus->getBreadcrumbs($handle, $siteId);
+    }
 
     public function getMenuData(string $handle, ?int $siteId = null): array
     {

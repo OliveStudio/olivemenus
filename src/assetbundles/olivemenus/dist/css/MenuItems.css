@@ -1,271 +1,137 @@
-/**
- * Olivemenus plugin for Craft CMS
- *
- * MenuItems Field CSS
- *
- * @author    Olivestudio
- * @copyright Copyright (c) 2018 Olivestudio
- * @link      http://www.olivestudio.net/
- * @package   Olivemenus
- * @since     1.0.0
- */
+/* Olive Menus editor */
+
+.olive-menu-editor {
+    display: grid;
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--xl);
+}
 
 #menu-items-sidebar {
-	width: 24%;
-	margin-right: 2rem;
+    padding: var(--l);
+    border: 1px solid var(--hairline-color, var(--gray-200));
+    border-radius: var(--large-border-radius);
 }
 
-#menu-items-sidebar .ui-tabs-panel form > .field,
-#menu-items-sidebar .ui-tabs-panel form > .fields,
+#menu-items-sidebar > .buttons,
+#menu-items .menu-reorder-controls .btngroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--xs);
+}
+
+#menu-items-sidebar > h3 {
+    margin-block-start: var(--l);
+}
+
 #menu-items-sidebar .fields-custom {
-	margin-bottom: var(--m);
+    margin-block-end: var(--m);
 }
 
-#menu-items-sidebar .field.checkboxfield {
-	margin:0 0 8px 0;
+#menu-list,
+#menu-list ol {
+    list-style: none;
+    padding-inline-start: 0;
 }
 
-#menu-items-sidebar .field.checkboxfield label {
-    display:block;
+#menu-list ol {
+    border-inline-start: 1px solid var(--hairline-color, var(--gray-200));
+    margin-inline-start: var(--s);
+    padding-inline-start: var(--m);
 }
 
-#menu-items-sidebar .accordion .ui-accordion-header {
-	cursor:pointer;
-	position:relative;
-	color: var(--medium-text-color);
-	background-color: var(--white);
-	border: 2px solid var(--gray-100);
-	border-radius: var(--large-border-radius);
-	padding: var(--m);
-	margin-bottom: 0;
+#menu-list li {
+    margin-block-end: var(--s);
 }
 
-#menu-items-sidebar .accordion .ui-accordion-header:after {
-	content: "downangle";
-	font-family: "Craft";
-	height: 16px;
-	width: 16px;
-	position: absolute;
-	top: var(--m);
-	right: var(--m);
-	line-height: 16px;
-	font-weight: normal;
+#menu-list li > div {
+    margin-block-end: var(--s);
+    border: 1px solid var(--hairline-color, var(--gray-200));
+    border-radius: var(--large-border-radius);
 }
 
-#menu-items-sidebar .accordion .ui-accordion-header:hover,
-#menu-items-sidebar .accordion .ui-accordion-header.ui-state-active {
-	background: var(--gray-050);
-    outline:none;
-}
-
-#menu-items-sidebar .accordion .ui-accordion-header.ui-state-active:after {
-    content: "upangle";
-}
-
-#menu-items-sidebar .accordion .ui-accordion-content {
-	background-color: var(--white);
-	border: 2px solid var(--gray-100);
-	border-top: 0;
-	border-radius: var(--large-border-radius);
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
-	padding: var(--m);
-}
-
-#menu-items-sidebar .accordion .ui-accordion-content:last-child {
-	border-top:1px solid #e3e5e8;
-}
-
-#menu-items-sidebar .accordion .accordion {
-	margin-bottom: var(--m);
-}
-
-#menu-items-sidebar .accordion .accordion .ui-accordion-header {
-	border:none;
-	padding: var(--s) 0;
-	border-bottom:1px solid var(--gray-100);
-	background:none;
-	border-radius: 0;
-}
-
-#menu-items-sidebar .accordion .accordion .ui-accordion-header:hover,
-#menu-items-sidebar .accordion .accordion .ui-accordion-header.ui-state-active {
-    border-bottom:1px solid var(--gray-300);
-}
-
-#menu-items-sidebar .accordion .accordion .ui-accordion-header:after {
-	width: 16px;
-	height: 16px;
-	line-height: 16px;
-	font-size: 16px;
-	right: 0;
-	top: 12px;
-}
-
-#menu-items-sidebar .accordion .accordion .ui-accordion-content {
-	padding:14px 0;
-	border:none;
-}
-
-#menu-items-sidebar .accordion .accordion .ui-accordion-content .ui-tabs {
-	margin-bottom:0;
-}
-
-#menu-items-sidebar .ui-tabs .ui-tabs-nav {
-	border-bottom:1px solid #e3e5e8;
-	padding-bottom:10px;
-	margin-bottom:10px;
-	overflow:hidden;
-}
-
-#menu-items-sidebar .ui-tabs .ui-tabs-nav li {
-	float:left;
-	margin-right:10px;
-}
-
-#menu-items-sidebar .ui-tabs .ui-tabs-nav li a {
-	color:#555;
-}
-
-#menu-items-sidebar .ui-tabs .ui-tabs-nav li:hover a,
-#menu-items-sidebar .ui-tabs .ui-tabs-nav li.ui-state-active a {
-	color:#da5a47;
-	text-decoration:none;
-}
-
-#menu-items-sidebar .search-list {
-	margin-bottom:20px;
-}
-
-#menu-items-sidebar .search-list.active {
-	padding-top:20px;
-}
-
-#menu-items-sidebar .search-list li {
-	display:none;
-}
-
-#menu-items-sidebar .btn:hover,
-#menu-items-sidebar .btn:focus,
-#menu-items-sidebar .btn:active,
-#menu-items .btn:hover,
-#menu-items .btn:focus,
-#menu-items .btn:active {
-    background:#737f8c;
-    color:#fff !important;
-}
-
-#menu-items {
-	flex-grow: 1;
-}
-
-#menu-items .sortable {
-	padding-left:0;
-	list-style:none;
-}
-
-#menu-items .sortable li {
-    /* width:380px; */
-	margin-bottom:14px;
-}
-
-#menu-items .sortable li.ui-sortable-helper {
-    margin-top:14px;
-}
-
-#menu-items .sortable ol {
-	list-style:none;
-	padding-left:20px;
-    border-left:1px dotted #cacaca;
-}
-
-#menu-items .sortable li > .ui-sortable-handle {
-    margin-bottom:14px;
-}
-
-#menu-items .sortable li .item-heading {
-	background-color: var(--white);
-	border: 2px solid var(--gray-100);
-	border-radius: var(--large-border-radius);
-	padding: var(--m);
-    font-weight: 700;
-	margin: 0;
+#menu-list .item-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--s);
+    padding: var(--s) var(--m);
+    font-weight: 600;
     cursor: move;
-	display: flex;
 }
 
-#menu-items .sortable li > .ui-sortable-handle:hover > .item-heading,
-#menu-items .sortable li.active > .ui-sortable-handle > .item-heading {
+#menu-list li.active > div > .item-heading,
+#menu-list .item-heading:hover {
     background: var(--gray-050);
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
 }
 
-#menu-items .sortable li .item-heading .menu-title {
-    padding-left: var(--xs);
-    display: inline-block;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-	flex-grow: 1;
+#menu-list .menu-title {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
-#menu-items .sortable li .item-heading .settings-toggle {
-    width: 24px;
-    height: 24px;
-    display: inline-block;
+#menu-list .settings-toggle {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--small-border-radius, 4px);
     cursor: pointer;
 }
 
-#menu-items .sortable li .item-heading .settings-toggle:before {
-	content: "downangle";
-	font-family: "Craft";
-	line-height: 24px;
-	font-size: 16px;
+#menu-list .settings-toggle::before {
+    content: "downangle";
+    font-family: Craft;
+    font-size: 16px;
 }
 
-#menu-items .sortable li.active > .ui-sortable-handle > .item-heading .settings-toggle:before {
+#menu-list .settings-toggle[aria-expanded="true"]::before {
     content: "upangle";
 }
 
-#menu-items .sortable li .item-heading .delete-menu {
-    text-align:right;
-    font-size:11px;
-    font-weight:400;
-    color:#29323d;
-	border: 1px solid #fff;
+#menu-list .settings-toggle:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
 }
 
-#menu-items .sortable li .item-content {
-    max-height:0;
-    transition:200ms linear all;
-    overflow:hidden;
+#menu-list .item-content {
+    display: none;
 }
 
-#menu-items .sortable li.active > .ui-sortable-handle > .item-content {
-    max-height:500px;
+#menu-list li.active > div > .item-content {
+    display: block;
+    border-block-start: 1px solid var(--hairline-color, var(--gray-200));
 }
 
-#menu-items .sortable li .item-content .inner {
+#menu-list .item-content .inner {
     padding: var(--m);
-    border: 2px solid var(--gray-100);
-    border-top:none;
-	border-radius: 0 0 var(--large-border-radius) var(--large-border-radius);
 }
 
-#menu-items .sortable li .item-content .inner .field:last-child {
-    margin-bottom:0;
+#menu-list .placeholder {
+    border: 1px dashed var(--gray-300);
+    border-radius: var(--large-border-radius);
 }
 
-#menu-items .sortable .placeholder {
-	background:#fafafa;
-	border:1px solid #eaeaea;
+#menu-list .menu-item-status {
+    font-weight: normal;
 }
 
-#instructions {
-	color: var(--medium-text-color);
+#menu-list .menu-reorder[aria-disabled="true"] {
+    cursor: default;
+    opacity: 0.5;
 }
 
-.d-flex {
-	display: flex;
+.olive-menu-twig {
+    margin-block-start: var(--xl);
+}
+
+.olive-menu-twig code {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 860px) {
+    .olive-menu-editor {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

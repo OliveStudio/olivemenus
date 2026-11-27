@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Olivemenus plugin for Craft CMS 5.x
  *
@@ -10,12 +11,12 @@
 
 namespace olivestudio\olivemenus\models;
 
-use craft\validators\HandleValidator;
-use craft\validators\StringValidator;
-use olivestudio\olivemenus\Olivemenus;
-
 use Craft;
 use craft\base\Model;
+use craft\validators\HandleValidator;
+
+use craft\validators\StringValidator;
+use olivestudio\olivemenus\Olivemenus;
 
 /**
  * OlivemenusModel Model
@@ -48,11 +49,11 @@ class OlivemenusModel extends Model
      */
     public string $name = '';
 
-     /**
-     * Handle attribute
-     *
-     * @var string
-     */
+    /**
+    * Handle attribute
+    *
+    * @var string
+    */
     public string $handle = '';
 
     public mixed $dateCreated = null;
@@ -61,11 +62,11 @@ class OlivemenusModel extends Model
 
     public string $uid = '';
 
-     /**
-     * Site Id attribute
-     *
-     * @var int
-     */
+    /**
+    * Site Id attribute
+    *
+    * @var int
+    */
     public int $site_id = 0;
 
     // Public Methods
@@ -86,34 +87,30 @@ class OlivemenusModel extends Model
         return [
             [['id'], 'integer'],
             [['site_id'], 'integer'],
-            [['name', 'handle'], 'string'],
+            [['name', 'handle'], 'string', 'max' => 255],
             [['name', 'handle'], 'required'],
             ['handle', 'validateHandle'],
             ['name', 'validateName'],
         ];
     }
 
-    public function validateHandle(): void 
+    public function validateHandle(): void
     {
-
         $validator = new HandleValidator();
         $validator->validateAttribute($this, 'handle');
         $data = Olivemenus::$plugin->olivemenus->getMenuByHandle($this->handle, $this->site_id);
         if ($data && $data->id != $this->id) {
             $this->addError('handle', Craft::t('olivemenus', 'Handle "{handle}" is already in use on this site', ['handle' => $this->handle]));
         }
-
     }
     
-    public function validateName(): void 
+    public function validateName(): void
     {
-
         $validator = new StringValidator();
         $validator->validateAttribute($this, 'name');
         $data = Olivemenus::$plugin->olivemenus->getMenuByName($this->name, $this->site_id);
         if ($data && $data->id != $this->id) {
             $this->addError('name', Craft::t('olivemenus', 'Name "{name}" is already in use on this site', ['name' => $this->name]));
         }
-
     }
 }

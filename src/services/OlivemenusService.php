@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Olivemenus plugin for Craft CMS 5.x
  *
@@ -12,13 +13,18 @@ namespace olivestudio\olivemenus\services;
 
 use Craft;
 use craft\base\Component;
-use craft\base\Element;
-use craft\elements\Entry;
+use craft\base\ElementInterface;
+use craft\elements\Asset;
 use craft\elements\Category;
+use craft\elements\Entry;
 use craft\helpers\Html;
+use craft\web\Request;
+use olivestudio\olivemenus\events\RegisterMenuElementTypesEvent;
+use olivestudio\olivemenus\gql\MenuQuery;
 use olivestudio\olivemenus\models\OlivemenusModel;
 use olivestudio\olivemenus\Olivemenus;
 use olivestudio\olivemenus\records\OlivemenusRecord;
+use yii\caching\TagDependency;
 
 /**
  * OlivemenusService Service
@@ -35,6 +41,37 @@ use olivestudio\olivemenus\records\OlivemenusRecord;
  */
 class OlivemenusService extends Component
 {
+    /**
+     * @event RegisterMenuElementTypesEvent Fired when the supported menu element types are collected.
+     */
+    public const EVENT_REGISTER_MENU_ELEMENT_TYPES = 'registerMenuElementTypes';
+
+    /**
+     * @return array<class-string<ElementInterface>, string> Element types and their control panel labels.
+     */
+    public function getLinkableElementTypes(): array
+    {
+        $types = [
+            Entry::class => Craft::t('olivemenus', 'Entries'),
+            Category::class => Craft::t('olivemenus', 'Categories'),
+            Asset::class => Craft::t('olivemenus', 'Assets'),
+        ];
+        if (Craft::$app->getPlugins()->isPluginEnabled('commerce') && class_exists(\craft\commerce\elements\Product::class)) {
+            $types[\craft\commerce\elements\Product::class] = Craft::t('olivemenus', 'Products');
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_REGISTER_MENU_ELEMENT_TYPES)) {
+            $event = new RegisterMenuElementTypesEvent(['types' => $types]);
+            $this->trigger(self::EVENT_REGISTER_MENU_ELEMENT_TYPES, $event);
+            $types = $event->types;
+        }
+
+        return array_filter($types, static fn (string $label, string $type): bool => is_subclass_of(
+            $type,
+            ElementInterface::class,
+        ) && $label !== '', ARRAY_FILTER_USE_BOTH);
+    }
+
     // Public Methods
     // =========================================================================
 
@@ -45,12 +82,19 @@ class OlivemenusService extends Component
                     ->all();
     }
 
-    public function getMenuById(int $id): mixed 
+    public function getMenuById(int $id): ?OlivemenusModel
     {
         $record = OlivemenusRecord::findOne([
-            'id' => $id
+            'id' => $id,
         ]);
-        return new OlivemenusModel($record->getAttributes());
+        if ($record === null) {
+            return null;
+        }
+
+        return new OlivemenusModel(array_filter(
+            $record->getAttributes(),
+            static fn (mixed $value): bool => $value !== null,
+        ));
     }
 
     public function getMenuByHandle(string $handle, ?int $siteId = null): mixed
@@ -69,42 +113,49 @@ class OlivemenusService extends Component
         ]);
     }
 
-    public function deleteMenuById(int $id): mixed 
+    public function deleteMenuById(int $id): ?int
     {
-        $record = OlivemenusRecord::findOne([
-            'id' => $id
-        ]);
+        $record = OlivemenusRecord::findOne($id);
 
-        if ($record) {
-            Olivemenus::$plugin->olivemenuItems->deleteItemsByMenuId($record);
-            if ($record->delete()) {
-                return 1;
-            };
+        // The menu foreign key cascades to its items.
+        if (!$record?->delete()) {
+            return null;
         }
+
+        $this->invalidateMenuCache();
+
+        return 1;
     }
 
-    public function saveMenu(OlivemenusModel $model): mixed 
+    public function saveMenu(OlivemenusModel $model, bool $invalidateCache = true): bool
     {
-        $record = false;
-        if (isset($model->id)) {
-            $record = OlivemenusRecord::findOne( [
-                'id' => $model->id
-            ]);
-        }
-
-        if (!$record) {
-            $record = new OlivemenusRecord();
+        $record = $model->id
+            ? OlivemenusRecord::findOne($model->id)
+            : new OlivemenusRecord();
+        if ($record === null) {
+            return false;
         }
 
         $record->name = $model->name;
         $record->handle = $model->handle;
         $record->site_id = $model->site_id;
 
-        $save = $record->save();
-        if (!$save) {
-            Craft::getLogger()->log( $record->getErrors(), LOG_ERR, 'olivemenus' );
+        if (!$record->save()) {
+            Craft::error($record->getErrors(), __METHOD__);
+            return false;
         }
-        return $save;
+
+        $model->id = (int)$record->id;
+        if ($invalidateCache) {
+            $this->invalidateMenuCache();
+        }
+
+        return true;
+    }
+
+    public function invalidateMenuCache(): void
+    {
+        TagDependency::invalidate(Craft::$app->getCache(), MenuQuery::CACHE_TAG);
     }
 
     // Front-end Methods
@@ -143,11 +194,9 @@ class OlivemenusService extends Component
 
         $localHTML = '';
 
-        $menuItems = $this->enrichMenuItems(
-            Olivemenus::$plugin->olivemenuItems->getMenuItems($menu->id)
-        );
+        $menuItems = $this->getMenuDataById((int)$menu->id, $siteId);
         foreach ($menuItems as $menuItem) {
-            $localHTML .= $this->getMenuItemHTML($menuItem, $config);
+            $localHTML .= $this->_getMenuItemHTML($menuItem, $config);
         }
 
         if ($withoutUl !== true) {
@@ -155,7 +204,11 @@ class OlivemenusService extends Component
         }
 
         if ($withoutContainer !== true) {
-            $localHTML = '<div' . $menuIdAttr . ' class="menu' . $menuClass . '">' . $localHTML . '</div>';
+            $navLabel = trim((string)($config['nav-label'] ?? ''));
+            $tag = $navLabel === '' ? 'div' : 'nav';
+            $labelAttr = $navLabel === '' ? '' : ' aria-label="' . Html::encode($navLabel) . '"';
+            $localHTML = '<' . $tag . $menuIdAttr . ' class="menu' . $menuClass . '"' . $labelAttr . '>' .
+                $localHTML . '</' . $tag . '>';
         }
 
         return $localHTML;
@@ -175,86 +228,129 @@ class OlivemenusService extends Component
             return [];
         }
 
-        return $this->enrichMenuItems(
-            Olivemenus::$plugin->olivemenuItems->getMenuItems($menu->id)
+        return $this->getMenuDataById((int)$menu->id, $siteId);
+    }
+
+    public function getMenuDataById(int $menuId, int $siteId): array
+    {
+        return $this->_enrichMenuItems(
+            Olivemenus::$plugin->olivemenuItems->getMenuItems($menuId),
+            $siteId,
         );
     }
 
-    private function enrichMenuItems(array $items): array
+    /**
+     * Returns the first active item's path from the root of the menu, including the item itself.
+     */
+    public function getBreadcrumbs(string $handle, ?int $siteId = null): array
+    {
+        return $this->_findActiveTrail($this->getMenuData($handle, $siteId));
+    }
+
+    private function _findActiveTrail(array $items): array
+    {
+        foreach ($items as $item) {
+            if ($item['isActive']) {
+                return [$item];
+            }
+            if ($item['isAncestorActive']) {
+                return [$item, ...$this->_findActiveTrail($item['children'])];
+            }
+        }
+
+        return [];
+    }
+
+    private function _enrichMenuItems(array $items, int $siteId): array
     {
         if (empty($items)) {
             return [];
         }
 
-        $elements = $this->loadElementsByIds($this->collectEntryIds($items));
-        $items = $this->applyItemEnrichment($items, $elements);
-        $this->markAncestorActive($items);
+        $items = array_values(array_filter($items, static fn (array $item): bool => (bool)($item['enabled'] ?? true)));
+        $elements = $this->getLinkedElements($this->_collectEntryIds($items), $siteId);
+        $items = $this->_applyItemEnrichment($items, $elements);
+        $this->_markAncestorActive($items);
 
         return $items;
     }
 
-    private function collectEntryIds(array $items): array
+    private function _collectEntryIds(array $items): array
     {
         $ids = [];
 
         foreach ($items as $item) {
+            if (!($item['enabled'] ?? true)) {
+                continue;
+            }
             if (!empty($item['entry_id']) && empty($item['custom_url'])) {
                 $ids[] = (int)$item['entry_id'];
             }
 
             if (!empty($item['children'])) {
-                $ids = array_merge($ids, $this->collectEntryIds($item['children']));
+                $ids = array_merge($ids, $this->_collectEntryIds($item['children']));
             }
         }
 
         return array_values(array_unique(array_filter($ids)));
     }
 
-    private function loadElementsByIds(array $ids): array
+    /**
+     * @param int[] $ids
+     * @return array<int, ElementInterface> Enabled elements indexed by ID.
+     */
+    public function getLinkedElements(array $ids, int $siteId): array
     {
-        if (empty($ids)) {
+        if (!$ids) {
             return [];
         }
 
+        $service = Craft::$app->getElements();
+        $types = array_intersect($service->getElementTypesByIds($ids), array_keys($this->getLinkableElementTypes()));
         $elements = [];
-
-        foreach (Entry::find()->id($ids)->all() as $entry) {
-            $elements[$entry->id] = $entry;
-        }
-
-        $remainingIds = array_diff($ids, array_keys($elements));
-        if ($remainingIds) {
-            foreach (Category::find()->id($remainingIds)->all() as $category) {
-                $elements[$category->id] = $category;
+        foreach ($types as $type) {
+            $query = $type::find()
+                ->id($ids)
+                ->siteId($siteId);
+            foreach ($query->all() as $element) {
+                $elements[$element->id] = $element;
             }
         }
 
         return $elements;
     }
 
-    private function applyItemEnrichment(array $items, array $elements): array
+    private function _applyItemEnrichment(array $items, array $elements): array
     {
-        foreach ($items as $key => $item) {
-            $item['url'] = $this->resolveMenuItemUrl($item, $elements);
-            $item['element'] = $this->resolveMenuItemElement($item, $elements);
+        $enriched = [];
+        foreach ($items as $item) {
+            $item['url'] = $this->_resolveMenuItemUrl($item, $elements);
+            if ($item['url'] === '' && !empty($item['entry_id']) && empty($item['custom_url']) && !empty($item['hide_when_unavailable'])) {
+                continue;
+            }
+            $item['element'] = $this->_resolveMenuItemElement($item, $elements);
+            if (!empty($item['use_element_title']) && $item['element'] && $item['element']->title !== '') {
+                $item['name'] = $item['element']->title ?? $item['name'];
+            }
             $item['target'] = in_array($item['target'] ?? '', ['_self', '_blank'], true)
                 ? $item['target']
                 : '_self';
-            $item['dataAttributes'] = $this->parseDataAttributes($item['data_json'] ?? '');
-            $item['isActive'] = $this->isUrlActive($item['url']);
+            $item['dataAttributes'] = $this->_parseDataAttributes($item['data_json'] ?? '');
+            $item['isActive'] = $this->_isUrlActive($item['url']);
             $item['isAncestorActive'] = false;
 
             if (!empty($item['children'])) {
-                $item['children'] = $this->applyItemEnrichment($item['children'], $elements);
+                $children = array_filter($item['children'], static fn (array $child): bool => (bool)($child['enabled'] ?? true));
+                $item['children'] = $this->_applyItemEnrichment(array_values($children), $elements);
             }
 
-            $items[$key] = $item;
+            $enriched[] = $item;
         }
 
-        return $items;
+        return $enriched;
     }
 
-    private function markAncestorActive(array &$items): bool
+    private function _markAncestorActive(array &$items): bool
     {
         $hasActiveDescendant = false;
 
@@ -262,7 +358,7 @@ class OlivemenusService extends Component
             $childHasActive = false;
 
             if (!empty($item['children'])) {
-                $childHasActive = $this->markAncestorActive($item['children']);
+                $childHasActive = $this->_markAncestorActive($item['children']);
             }
 
             $item['isAncestorActive'] = $childHasActive;
@@ -275,21 +371,30 @@ class OlivemenusService extends Component
         return $hasActiveDescendant;
     }
 
-    private function resolveMenuItemUrl(array $item, array $elements): string
+    private function _resolveMenuItemUrl(array $item, array $elements): string
     {
         if (!empty($item['custom_url'])) {
-            return $this->replaceEnvironmentVariables($item['custom_url']) ?? '';
+            return $this->getSafeLinkUrl($this->_replaceEnvironmentVariables($item['custom_url']));
         }
 
         $entryId = (int)($item['entry_id'] ?? 0);
-        if ($entryId && isset($elements[$entryId])) {
-            return $elements[$entryId]->url ?? '';
-        }
-
-        return '';
+        return $this->getSafeLinkUrl($elements[$entryId]->url ?? '');
     }
 
-    private function resolveMenuItemElement(array $item, array $elements): ?Element
+    public function getSafeLinkUrl(string $url): string
+    {
+        $url = trim($url);
+        if (preg_match('/[\x00-\x1f\x7f]/', $url)) {
+            return '';
+        }
+
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        return $scheme === null || in_array(strtolower((string)$scheme), ['http', 'https', 'mailto', 'tel', 'sms', 'ftp'], true)
+            ? $url
+            : '';
+    }
+
+    private function _resolveMenuItemElement(array $item, array $elements): ?ElementInterface
     {
         if (!empty($item['custom_url'])) {
             return null;
@@ -300,24 +405,38 @@ class OlivemenusService extends Component
         return $elements[$entryId] ?? null;
     }
 
-    private function isUrlActive(string $url): bool
+    private function _isUrlActive(string $url): bool
     {
-        if ($url === '') {
+        $request = Craft::$app->getRequest();
+        if (!$request instanceof Request || $request->getIsCpRequest() || $url === '') {
             return false;
         }
 
-        $currentActiveUrl = Craft::$app->request->getServerName() . Craft::$app->request->getUrl();
-        if ($currentActiveUrl === '') {
+        $current = parse_url($request->getAbsoluteUrl());
+        $target = parse_url($url);
+        if ($current === false || $target === false) {
             return false;
         }
 
-        $urlFiltered = preg_replace('#^https?://#', '', $url);
-        $currentActiveUrl = preg_replace('/\?.*/', '', $currentActiveUrl);
+        if (isset($target['host'])) {
+            $scheme = strtolower($target['scheme'] ?? $current['scheme'] ?? 'http');
+            if (!in_array($scheme, ['http', 'https'], true)) {
+                return false;
+            }
 
-        return $currentActiveUrl === $urlFiltered;
+            $port = $target['port'] ?? ($scheme === 'https' ? 443 : 80);
+            $currentPort = $current['port'] ?? (($current['scheme'] ?? '') === 'https' ? 443 : 80);
+            if (strcasecmp($target['host'], $current['host'] ?? '') !== 0 || $port !== $currentPort) {
+                return false;
+            }
+        } elseif (isset($target['scheme']) || !str_starts_with($target['path'] ?? '', '/')) {
+            return false;
+        }
+
+        return rtrim($target['path'] ?? '/', '/') === rtrim($current['path'] ?? '/', '/');
     }
 
-    private function getMenuItemHTML(array $menuItem, array $config): string
+    private function _getMenuItemHTML(array $menuItem, array $config): string
     {
         $ulClass = '';
         $menuItemClass = 'menu-item';
@@ -338,8 +457,11 @@ class OlivemenusService extends Component
             $menuClass .= ' active';
             $menuItemClass .= ' current-menu-item';
         }
+        if ($menuItem['isAncestorActive']) {
+            $menuItemClass .= ' current-menu-ancestor';
+        }
 
-        $dataAttributes = $this->buildDataAttributesFromArray($menuItem['dataAttributes'] ?? []);
+        $dataAttributes = $this->_buildDataAttributesFromArray($menuItem['dataAttributes'] ?? []);
         $label = Html::encode(Craft::t('olivemenus', $menuItem['name']));
         $menuClassAttr = Html::encode(trim($menuClass));
         $menuItemClassAttr = Html::encode(trim($menuItemClass));
@@ -349,7 +471,10 @@ class OlivemenusService extends Component
         $localHTML = '<li id="menu-item-' . (int)$menuItem['id'] . '" class="' . $menuItemClassAttr . '">';
 
         if ($menuItemUrl) {
-            $localHTML .= '<a class="' . $menuClassAttr . '" target="' . Html::encode($target) . '" href="' . Html::encode($menuItemUrl) . '"' . $dataAttributes . '>' . $label . '</a>';
+            $rel = $target === '_blank' ? ' rel="noopener"' : '';
+            $current = $menuItem['isActive'] ? ' aria-current="page"' : '';
+            $localHTML .= '<a class="' . $menuClassAttr . '" target="' . Html::encode($target) . '" href="' .
+                Html::encode($menuItemUrl) . '"' . $rel . $current . $dataAttributes . '>' . $label . '</a>';
         } else {
             $localHTML .= '<span class="' . $menuClassAttr . '"' . $dataAttributes . '>' . $label . '</span>';
         }
@@ -361,7 +486,7 @@ class OlivemenusService extends Component
 
             $localHTML .= '<ul class="' . $ulClass . '">';
             foreach ($menuItem['children'] as $child) {
-                $localHTML .= $this->getMenuItemHTML($child, $config);
+                $localHTML .= $this->_getMenuItemHTML($child, $config);
             }
             $localHTML .= '</ul>';
         }
@@ -370,7 +495,7 @@ class OlivemenusService extends Component
         return $localHTML;
     }
 
-    private function parseDataAttributes(?string $dataJson): array
+    private function _parseDataAttributes(?string $dataJson): array
     {
         if (empty($dataJson)) {
             return [];
@@ -378,15 +503,15 @@ class OlivemenusService extends Component
 
         $attributes = [];
 
-        foreach (explode(PHP_EOL, $dataJson) as $dataItem) {
+        foreach (preg_split('/\r\n|\r|\n/', $dataJson) as $dataItem) {
             $parts = explode(':', $dataItem, 2);
             if (count($parts) !== 2) {
                 continue;
             }
 
-            $name = trim($parts[0]);
+            $name = strtolower(trim($parts[0]));
             $value = trim($parts[1]);
-            if ($name === '') {
+            if (!preg_match('/^(data|aria)-[a-z0-9_.:-]+$/D', $name) || $name === 'aria-current') {
                 continue;
             }
 
@@ -396,7 +521,7 @@ class OlivemenusService extends Component
         return $attributes;
     }
 
-    private function buildDataAttributesFromArray(array $dataAttributes): string
+    private function _buildDataAttributesFromArray(array $dataAttributes): string
     {
         if (empty($dataAttributes)) {
             return '';
@@ -411,18 +536,31 @@ class OlivemenusService extends Component
         return $attributes;
     }
 
-    private function replaceEnvironmentVariables(string $str): mixed 
+    private function _replaceEnvironmentVariables(string $url): string
     {
-        $environmentVariables = Craft::$app->config->general->aliases;
-        if (is_array($environmentVariables)) {
-            $tmp = [];
-            foreach ($environmentVariables as $tag => $val) {
-                $tmp[sprintf("{%s}", $tag)] = $val;
+        $replacements = [];
+        foreach (Craft::$app->getConfig()->getGeneral()->aliases as $name => $value) {
+            $token = '{' . $name . '}';
+            if (!str_contains($url, $token)) {
+                continue;
             }
-            $environmentVariables = $tmp;
 
-            return str_replace(array_keys($environmentVariables), array_values($environmentVariables), $str);
+            // Aliases can point to private filesystem paths as well as public URLs.
+            $aliasUrl = is_string($value) ? $this->getSafeLinkUrl($value) : '';
+            $scheme = parse_url($aliasUrl, PHP_URL_SCHEME);
+            $isPublicUrl = in_array(strtolower((string)$scheme), ['http', 'https'], true) &&
+                is_string(parse_url($aliasUrl, PHP_URL_HOST)) &&
+                parse_url($aliasUrl, PHP_URL_USER) === null &&
+                parse_url($aliasUrl, PHP_URL_PASS) === null;
+            $isRelativeWebAlias = $name === '@web' &&
+                str_starts_with($aliasUrl, '/') &&
+                !str_starts_with($aliasUrl, '//');
+            if (!$isPublicUrl && !$isRelativeWebAlias) {
+                return '';
+            }
+            $replacements[$token] = $aliasUrl;
         }
-    }
 
+        return strtr($url, $replacements);
+    }
 }
