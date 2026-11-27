@@ -127,7 +127,7 @@ class OlivemenusService extends Component
         return 1;
     }
 
-    public function saveMenu(OlivemenusModel $model, bool $invalidateCache = true): bool
+    public function saveMenu(OlivemenusModel $model): bool
     {
         $record = $model->id
             ? OlivemenusRecord::findOne($model->id)
@@ -146,9 +146,7 @@ class OlivemenusService extends Component
         }
 
         $model->id = (int)$record->id;
-        if ($invalidateCache) {
-            $this->invalidateMenuCache();
-        }
+        $this->invalidateMenuCache();
 
         return true;
     }

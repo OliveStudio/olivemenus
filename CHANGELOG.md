@@ -1,5 +1,11 @@
 # Olive Menus release notes
 
+## 5.1.1 - 2026-11-27
+
+### Changed
+
+- Removed an experimental CLI integration from the package.
+
 ## 5.1.0 - 2026-11-27
 
 ### Added
@@ -10,7 +16,6 @@
 - Move items up, down, in, and out with keyboard-accessible controls.
 - Render breadcrumbs with `craft.olivemenus.getBreadcrumbs()` and query menus with GraphQL when the schema permits it.
 - Register additional linkable element types from a Craft module or plugin.
-- Import a menu from Verbb Navigation 3.x with a Craft CLI command that supports dry runs.
 - Set an accessible label with the `nav-label` Twig option.
 
 ### Changed
