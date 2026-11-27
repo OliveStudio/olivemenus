@@ -15,6 +15,7 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
 use craft\services\Plugins;
+use craft\services\Sites;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use olivestudio\olivemenus\services\OlivemenuItemsService;
@@ -60,7 +61,7 @@ class Olivemenus extends Plugin
      *
      * @var string
      */
-    public string $schemaVersion = '1.1.15';
+    public string $schemaVersion = '1.1.16';
 
     // Public Methods
     // =========================================================================
@@ -102,6 +103,13 @@ class Olivemenus extends Plugin
         );
 
         gql\MenuQuery::register();
+
+        // Site links resolve the current base URL, so keep cached navigation in sync with site changes.
+        foreach ([Sites::EVENT_AFTER_SAVE_SITE, Sites::EVENT_AFTER_DELETE_SITE] as $eventName) {
+            Event::on(Sites::class, $eventName, function(): void {
+                $this->olivemenus->invalidateMenuCache();
+            });
+        }
 
         // Register our variables
         Event::on(

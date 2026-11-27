@@ -30,6 +30,13 @@ use olivestudio\olivemenus\Olivemenus;
  */
 class OlivemenusItemsModel extends Model
 {
+    public const KIND_LINK = 'link';
+    public const KIND_HEADING = 'heading';
+    public const KIND_GROUP = 'group';
+    public const KIND_SITE = 'site';
+
+    public const KINDS = [self::KIND_LINK, self::KIND_HEADING, self::KIND_GROUP, self::KIND_SITE];
+
     // Public Properties
     // =========================================================================
 
@@ -83,6 +90,10 @@ class OlivemenusItemsModel extends Model
     public string $custom_url = '';
 
     public string $url_suffix = '';
+
+    public string $kind = self::KIND_LINK;
+
+    public string $target_site_uid = '';
 
     /**
      * Class attribute
@@ -140,6 +151,9 @@ class OlivemenusItemsModel extends Model
             [['id', 'menu_id', 'parent_id', 'item_order', 'entry_id'], 'integer'],
             [['name', 'custom_url', 'class', 'class_parent', 'data_json', 'target'], 'string', 'max' => 255],
             ['url_suffix', 'string', 'max' => 255],
+            ['kind', 'in', 'range' => self::KINDS, 'strict' => true, 'skipOnEmpty' => false],
+            ['target_site_uid', 'string', 'max' => 36],
+            ['target_site_uid', 'required', 'when' => static fn (self $item): bool => $item->kind === self::KIND_SITE],
             [
                 'url_suffix',
                 'match',

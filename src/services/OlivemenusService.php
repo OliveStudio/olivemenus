@@ -17,10 +17,12 @@ use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\Entry;
+use craft\errors\SiteNotFoundException;
 use craft\helpers\Html;
 use craft\web\Request;
 use olivestudio\olivemenus\events\RegisterMenuElementTypesEvent;
 use olivestudio\olivemenus\gql\MenuQuery;
+use olivestudio\olivemenus\models\OlivemenusItemsModel;
 use olivestudio\olivemenus\models\OlivemenusModel;
 use olivestudio\olivemenus\Olivemenus;
 use olivestudio\olivemenus\records\OlivemenusRecord;
@@ -242,17 +244,49 @@ class OlivemenusService extends Component
      */
     public function getBreadcrumbs(string $handle, ?int $siteId = null): array
     {
-        return $this->_findActiveTrail($this->getMenuData($handle, $siteId));
+        return $this->_findItemTrail($this->getMenuData($handle, $siteId));
     }
 
-    private function _findActiveTrail(array $items): array
+    /**
+     * Returns the active or selected item with its parent, siblings, and path.
+     */
+    public function getMenuContext(string $handle, ?int $siteId = null, int|string|null $itemId = null): ?array
+    {
+        $items = $this->getMenuData($handle, $siteId);
+        $ancestors = $this->_findItemTrail($items, $itemId);
+        if ($ancestors === []) {
+            return null;
+        }
+
+        $item = array_pop($ancestors);
+        $parent = $ancestors[array_key_last($ancestors)] ?? null;
+        $siblings = array_values(array_filter(
+            $parent['children'] ?? $items,
+            static fn (array $sibling): bool => $sibling['id'] !== $item['id'],
+        ));
+
+        return [
+            'item' => $item,
+            'parent' => $parent,
+            'siblings' => $siblings,
+            'ancestors' => $ancestors,
+            'branch' => $ancestors[0] ?? $item,
+        ];
+    }
+
+    private function _findItemTrail(array $items, int|string|null $itemId = null): array
     {
         foreach ($items as $item) {
-            if ($item['isActive']) {
+            if ($itemId === null ? $item['isActive'] : (string)$item['id'] === (string)$itemId) {
                 return [$item];
             }
-            if ($item['isAncestorActive']) {
-                return [$item, ...$this->_findActiveTrail($item['children'])];
+            if ($itemId === null && !$item['isAncestorActive']) {
+                continue;
+            }
+
+            $trail = $this->_findItemTrail($item['children'] ?? [], $itemId);
+            if ($trail !== []) {
+                return [$item, ...$trail];
             }
         }
 
@@ -371,6 +405,13 @@ class OlivemenusService extends Component
 
     private function _resolveMenuItemUrl(array $item, array $elements): string
     {
+        $kind = $item['kind'] ?? OlivemenusItemsModel::KIND_LINK;
+        if ($kind === OlivemenusItemsModel::KIND_SITE) {
+            return $this->getSiteLinkUrl($item['target_site_uid'] ?? '');
+        }
+        if ($kind !== OlivemenusItemsModel::KIND_LINK) {
+            return '';
+        }
         if (!empty($item['custom_url'])) {
             return $this->getSafeLinkUrl($this->_replaceEnvironmentVariables($item['custom_url']));
         }
@@ -395,6 +436,21 @@ class OlivemenusService extends Component
 
         $fragment = $suffixFragment ?? $fragment;
         return $fragment === null ? $base : $base . '#' . $fragment;
+    }
+
+    public function getSiteLinkUrl(string $uid): string
+    {
+        if ($uid === '') {
+            return '';
+        }
+
+        try {
+            $site = Craft::$app->getSites()->getSiteByUid($uid, false);
+        } catch (SiteNotFoundException) {
+            return '';
+        }
+
+        return $site->hasUrls ? $this->getSafeLinkUrl($site->getBaseUrl() ?? '') : '';
     }
 
     public function getSafeLinkUrl(string $url): string
@@ -455,7 +511,12 @@ class OlivemenusService extends Component
     private function _getMenuItemHTML(array $menuItem, array $config): string
     {
         $ulClass = '';
-        $menuItemClass = 'menu-item';
+        $menuItemClass = match ($menuItem['kind'] ?? OlivemenusItemsModel::KIND_LINK) {
+            OlivemenusItemsModel::KIND_HEADING => 'menu-item menu-item--heading',
+            OlivemenusItemsModel::KIND_GROUP => 'menu-item menu-item--group',
+            OlivemenusItemsModel::KIND_SITE => 'menu-item menu-item--site',
+            default => 'menu-item',
+        };
         $menuClass = $menuItem['class'] ?? '';
         $menuItemClass .= ' ' . ($menuItem['class_parent'] ?? '');
 

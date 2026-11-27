@@ -77,6 +77,11 @@ class OlivemenusVariable
         return Olivemenus::$plugin->olivemenus->getBreadcrumbs($handle, $siteId);
     }
 
+    public function getMenuContext(string $handle, ?int $siteId = null, int|string|null $itemId = null): ?array
+    {
+        return Olivemenus::$plugin->olivemenus->getMenuContext($handle, $siteId, $itemId);
+    }
+
     public function getMenuData(string $handle, ?int $siteId = null): array
     {
         if ($handle != '') {

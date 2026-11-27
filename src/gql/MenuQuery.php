@@ -115,6 +115,7 @@ final class MenuQuery
                     'type' => Type::string(),
                     'resolve' => static fn (array $item): ?string => $item['url'] === '' ? null : $item['url'],
                 ],
+                'kind' => Type::nonNull(Type::string()),
                 'target' => Type::nonNull(Type::string()),
                 'linkClass' => [
                     'type' => Type::string(),

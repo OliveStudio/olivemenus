@@ -25,6 +25,7 @@ class MenuItemsController extends MenuAdminController
         return $this->renderTemplate('olivemenus/_menu-items', [
             'menu' => $menu,
             'elementTypes' => Olivemenus::$plugin->olivemenus->getLinkableElementTypes(),
+            'siteLinkOptions' => $items->getSiteLinkOptions(),
             'menuItemsMarkup' => $items->getMenuItemsAdminMarkup($menu->id, $menu->site_id),
             'objSite' => $this->editableSite($menu->site_id),
         ]);
@@ -151,7 +152,19 @@ class MenuItemsController extends MenuAdminController
             }
 
             $existingItem = $existingItems[$savedId] ?? null;
-            $entryId = $item['entry-id'] ?? null;
+            $kind = $this->_itemText($item, 'kind', $existingItem->kind ?? OlivemenusItemsModel::KIND_LINK);
+            $targetSiteUid = '';
+            if ($kind === OlivemenusItemsModel::KIND_SITE) {
+                $targetSiteUid = $this->_itemText($item, 'target-site-uid', $existingItem->target_site_uid ?? '');
+                // A previously selected destination may have been disabled since this menu was saved.
+                if ($targetSiteUid === '' || (($existingItem->target_site_uid ?? '') !== $targetSiteUid
+                    && Olivemenus::$plugin->olivemenus->getSiteLinkUrl($targetSiteUid) === '')) {
+                    throw new BadRequestHttpException(Craft::t('olivemenus', 'Choose an enabled destination site for menu item {number}.', [
+                        'number' => $order + 1,
+                    ]));
+                }
+            }
+            $entryId = $kind === OlivemenusItemsModel::KIND_LINK ? ($item['entry-id'] ?? null) : null;
             $linkedId = $entryId === 0 || $entryId === '0' ? 0 : ($this->optionalId($entryId) ?? 0);
             $itemModel = new OlivemenusItemsModel([
                 'id' => $savedId ?? 0,
@@ -163,7 +176,9 @@ class MenuItemsController extends MenuAdminController
                 'url_suffix' => $linkedId !== 0
                     ? trim($this->_itemText($item, 'url-suffix', $existingItem->url_suffix ?? ''))
                     : '',
-                'custom_url' => $this->_itemText($item, 'custom-url'),
+                'custom_url' => $kind === OlivemenusItemsModel::KIND_LINK ? $this->_itemText($item, 'custom-url') : '',
+                'kind' => $kind,
+                'target_site_uid' => $targetSiteUid,
                 'class' => $this->_itemText($item, 'class'),
                 'class_parent' => $this->_itemText($item, 'class-parent'),
                 'data_json' => $this->_itemText($item, 'data-json'),

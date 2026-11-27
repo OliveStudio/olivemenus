@@ -84,6 +84,8 @@ class OlivemenuItemsService extends Component
         $record->entry_id = $model->entry_id;
         $record->custom_url = $model->custom_url;
         $record->url_suffix = $model->url_suffix;
+        $record->kind = $model->kind;
+        $record->target_site_uid = $model->target_site_uid;
         $record->class = $model->class;
         $record->class_parent = $model->class_parent;
         $record->data_json = $model->data_json;
@@ -146,6 +148,8 @@ class OlivemenuItemsService extends Component
             $arrMenuItems[$intKey]['entry_id'] = $objItem->entry_id;
             $arrMenuItems[$intKey]['custom_url'] = $objItem->custom_url;
             $arrMenuItems[$intKey]['url_suffix'] = $objItem->url_suffix;
+            $arrMenuItems[$intKey]['kind'] = $objItem->kind;
+            $arrMenuItems[$intKey]['target_site_uid'] = $objItem->target_site_uid;
             $arrMenuItems[$intKey]['class'] = $objItem->class;
             $arrMenuItems[$intKey]['class_parent'] = $objItem->class_parent;
             $arrMenuItems[$intKey]['data_json'] = $objItem->data_json;
@@ -159,6 +163,19 @@ class OlivemenuItemsService extends Component
             return $this->_sortMenuItemsByParents($arrMenuItems, $recoverDetached);
         }
         return $arrMenuItems;
+    }
+
+    public function getSiteLinkOptions(): array
+    {
+        $options = [];
+        $menus = Olivemenus::$plugin->olivemenus;
+        foreach (Craft::$app->getSites()->getAllSites(false) as $site) {
+            if ($menus->getSiteLinkUrl($site->uid) !== '') {
+                $options[$site->uid] = $site->getName();
+            }
+        }
+
+        return $options;
     }
 
     public function getMenuItemsAdminMarkup(int $menuId, ?int $siteId = null): string
@@ -186,7 +203,7 @@ class OlivemenuItemsService extends Component
 
         return Craft::$app->getView()->renderTemplate(
             'olivemenus/_menu-item',
-            ['items' => $items, 'elements' => $links],
+            ['items' => $items, 'elements' => $links, 'siteLinkOptions' => $this->getSiteLinkOptions()],
             View::TEMPLATE_MODE_CP,
         );
     }

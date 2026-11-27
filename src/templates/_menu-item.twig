@@ -1,13 +1,20 @@
 {% import _self as menuItems %}
 
-{{ menuItems.render(items, elements) }}
+{{ menuItems.render(items, elements, siteLinkOptions) }}
 
-{% macro render(items, elements) %}
+{% macro render(items, elements, siteLinkOptions) %}
     {% import _self as menuItems %}
     {% import "_includes/forms" as forms %}
     {% for item in items %}
         {% set element = elements[item.entry_id] ?? null %}
         {% set settingsId = 'menu-item-settings-' ~ item.id %}
+        {% set kind = item.kind ?? 'link' %}
+        {% set isLink = kind in ['link', 'site'] %}
+        {% set kindLabels = {
+            heading: 'Heading'|t('olivemenus'),
+            group: 'Group'|t('olivemenus'),
+            site: 'Site link'|t('olivemenus'),
+        } %}
         <li id="menu-item-{{ item.id }}">
             <div>
                 <div class="item-heading">
@@ -15,6 +22,9 @@
                         aria-label="{{ 'Item settings'|t('olivemenus') }}"
                         aria-expanded="false" aria-controls="{{ settingsId }}"></button>
                     <span class="menu-title">{{ item.name }}</span>
+                    {% if kindLabels[kind] is defined %}
+                        <span class="light">{{ kindLabels[kind] }}</span>
+                    {% endif %}
                     <button type="button" class="delete-menu btn small"
                         aria-label="{{ 'Delete {name}'|t('olivemenus', { name: item.name }) }}">
                         {{ 'Delete'|t('olivemenus') }}
@@ -22,19 +32,33 @@
                 </div>
                 <div class="item-content" id="{{ settingsId }}">
                     {{ hiddenInput('item-id', item.id) }}
+                    {{ hiddenInput('kind', kind) }}
                     {% if item.entry_id %}
                         {{ hiddenInput('item-entry-id', item.entry_id) }}
                     {% endif %}
                     <div class="inner">
                         {{ forms.textField({
-                            label: 'Link text'|t('olivemenus'),
+                            label: (isLink ? 'Link text' : 'Label')|t('olivemenus'),
                             id: settingsId ~ '-name',
                             name: 'item-name',
                             value: item.name,
                             maxlength: 255,
                             required: true,
                         }) }}
-                        {% if item.entry_id %}
+                        {% if kind == 'site' %}
+                            {% set options = siteLinkOptions %}
+                            {% if options[item.target_site_uid] is not defined %}
+                                {% set options = {(item.target_site_uid): 'Destination is unavailable'|t('olivemenus')}|merge(options) %}
+                            {% endif %}
+                            {{ forms.selectField({
+                                label: 'Destination site'|t('olivemenus'),
+                                id: settingsId ~ '-site',
+                                name: 'target-site-uid',
+                                options: options,
+                                value: item.target_site_uid,
+                                required: true,
+                            }) }}
+                        {% elseif item.entry_id %}
                             {% if element and element.url %}
                                 <p><a href="{{ element.url }}" target="_blank" rel="noopener">{{ element.title }}</a></p>
                             {% else %}
@@ -63,7 +87,7 @@
                                 name: 'item-hide-when-unavailable',
                                 checked: item.hide_when_unavailable,
                             }) }}
-                        {% else %}
+                        {% elseif kind == 'link' %}
                             {{ forms.textField({
                                 label: 'URL'|t('olivemenus'),
                                 id: settingsId ~ '-url',
@@ -79,16 +103,18 @@
                             name: 'item-enabled',
                             checked: item.enabled,
                         }) }}
-                        {{ forms.selectField({
-                            label: 'Open link in'|t('olivemenus'),
-                            id: settingsId ~ '-target',
-                            name: 'target',
-                            options: {
-                                '_self': 'Same tab'|t('olivemenus'),
-                                '_blank': 'New tab'|t('olivemenus'),
-                            },
-                            value: item.target,
-                        }) }}
+                        {% if isLink %}
+                            {{ forms.selectField({
+                                label: 'Open link in'|t('olivemenus'),
+                                id: settingsId ~ '-target',
+                                name: 'target',
+                                options: {
+                                    '_self': 'Same tab'|t('olivemenus'),
+                                    '_blank': 'New tab'|t('olivemenus'),
+                                },
+                                value: item.target,
+                            }) }}
+                        {% endif %}
                         {{ forms.textField({
                             label: 'Link CSS class'|t('olivemenus'),
                             id: settingsId ~ '-class',
@@ -116,7 +142,7 @@
                 </div>
             </div>
             {% if item.children ?? [] %}
-                <ol>{{ menuItems.render(item.children, elements) }}</ol>
+                <ol>{{ menuItems.render(item.children, elements, siteLinkOptions) }}</ol>
             {% endif %}
         </li>
     {% endfor %}

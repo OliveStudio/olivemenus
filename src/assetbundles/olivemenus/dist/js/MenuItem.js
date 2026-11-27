@@ -4,6 +4,8 @@ $(() => {
     const placeholder = $('#menu-list-placeholder');
     const saveFeedback = $('<div>', {class: 'error', role: 'alert', tabindex: '-1'}).prependTo(menuForm);
     const deletedIds = new Set();
+    const itemKind = $('#custom-menu-kind');
+    const siteSelector = $('#custom-menu-site');
     const reorderActions = {
         up: 'Move up',
         down: 'Move down',
@@ -112,7 +114,7 @@ $(() => {
         addReorderControls(item);
     }
 
-    function addItem({name, customUrl = '', entryId = null, entryUrl = ''}) {
+    function addItem({name, customUrl = '', entryId = null, entryUrl = '', kind = 'link', targetSiteUid = ''}) {
         const item = $('<li>', {id: 'menu-item-' + nextId, class: 'mjs-nestedSortable-leaf'});
         const handle = $('<div>', {class: 'ui-sortable-handle'}).appendTo(item);
         const heading = $('<div>', {class: 'item-heading'}).appendTo(handle);
@@ -137,13 +139,25 @@ $(() => {
         const details = $('<div>', {id: settingsId, class: 'item-content'}).appendTo(handle);
         const fields = $('<div>', {class: 'inner'}).appendTo(details);
 
+        $('<input>', {type: 'hidden', name: 'kind', value: kind}).appendTo(fields);
         if (entryId !== null) {
             $('<input>', {type: 'hidden', name: 'item-entry-id'}).val(entryId).appendTo(fields);
         }
 
-        fields.append(inputField('Name', 'item-name', name));
-        if (entryId === null) {
-            fields.append(inputField('Custom URL', 'custom-url', customUrl));
+        const isLink = kind === 'link' || kind === 'site';
+        fields.append(inputField(isLink ? 'Link text' : 'Label', 'item-name', name));
+        if (kind === 'site') {
+            const id = settingsId + '-site';
+            const select = siteSelector.clone().attr({id, name: 'target-site-uid'}).val(targetSiteUid);
+            fields.append(field('Destination site', $('<div>', {class: 'select'}).append(select), id));
+        } else if (kind === 'link' && entryId === null) {
+            fields.append(inputField('URL', 'custom-url', customUrl));
+        }
+        if (kind !== 'link') {
+            heading.find('.menu-title').after($('<span>', {
+                class: 'light',
+                text: itemKind.find('option').filter((_, option) => option.value === kind).text(),
+            }));
         }
 
         fields.append(checkboxField('Show on the website', 'item-enabled', true));
@@ -168,17 +182,19 @@ $(() => {
             fields.append(checkboxField('Hide when linked content is unavailable', 'item-hide-when-unavailable', true));
         }
 
-        const targetId = 'target-' + nextId;
-        const target = $('<select>', {id: targetId, name: 'target', class: 'text fullwidth'}).append(
-            $('<option>', {value: '_self', text: Craft.t('olivemenus', 'Open in same tab')}),
-            $('<option>', {value: '_blank', text: Craft.t('olivemenus', 'Open in new tab')})
-        );
+        if (isLink) {
+            const targetId = settingsId + '-target';
+            const target = $('<select>', {id: targetId, name: 'target'}).append(
+                $('<option>', {value: '_self', text: Craft.t('olivemenus', 'Same tab')}),
+                $('<option>', {value: '_blank', text: Craft.t('olivemenus', 'New tab')})
+            );
+            fields.append(field('Open link in', $('<div>', {class: 'select'}).append(target), targetId));
+        }
 
         fields.append(
-            inputField('Class', 'class'),
-            inputField('Class parent', 'class-parent'),
-            inputField('Data attributes', 'data-json', '', 'textarea'),
-            field('Target options', target, targetId)
+            inputField('Link CSS class', 'class'),
+            inputField('List item CSS class', 'class-parent'),
+            inputField('Link attributes', 'data-json', '', 'textarea')
         );
 
         if (/^https?:\/\//i.test(entryUrl)) {
@@ -299,6 +315,13 @@ $(() => {
         });
     });
 
+    itemKind.on('change', () => {
+        const kind = itemKind.val();
+        $('#custom-menu-url-field').prop('hidden', kind !== 'link');
+        $('#custom-menu-site-field').prop('hidden', kind !== 'site');
+        siteSelector.prop('required', kind === 'site');
+    });
+
     $('#menu-items-sidebar form.custom-url').on('submit', (event) => {
         event.preventDefault();
 
@@ -312,7 +335,13 @@ $(() => {
             return;
         }
 
-        addItem({name, customUrl: url.val()});
+        const kind = itemKind.val();
+        addItem({
+            name,
+            kind,
+            customUrl: kind === 'link' ? url.val() : '',
+            targetSiteUid: kind === 'site' ? siteSelector.val() : '',
+        });
         title.val('');
         url.val('');
     });
@@ -332,6 +361,8 @@ $(() => {
                 },
                 'parent-id': parent_id,
                 'name': findField(item, 'item-name').val(),
+                'kind': findField(item, 'kind').val(),
+                'target-site-uid': findField(item, 'target-site-uid').val(),
                 'entry-id': findField(item, 'item-entry-id').val() || undefined,
                 'custom-url': findField(item, 'custom-url').val(),
                 'url-suffix': findField(item, 'url-suffix').val(),

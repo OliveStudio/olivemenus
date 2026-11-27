@@ -25,22 +25,46 @@
                 {% endfor %}
             </div>
 
-            <h3>{{ 'Custom link'|t('olivemenus') }}</h3>
+            <h3>{{ 'Custom items'|t('olivemenus') }}</h3>
             <form class="custom-url" method="post">
                 <div class="fields-custom">
+                    {% set kindOptions = {
+                        link: 'Custom link'|t('olivemenus'),
+                        heading: 'Heading'|t('olivemenus'),
+                        group: 'Group'|t('olivemenus'),
+                    } %}
+                    {% if siteLinkOptions %}
+                        {% set kindOptions = kindOptions|merge({site: 'Site link'|t('olivemenus')}) %}
+                    {% endif %}
+                    {{ forms.selectField({
+                        label: 'Item type'|t('olivemenus'),
+                        id: 'custom-menu-kind',
+                        options: kindOptions,
+                        value: 'link',
+                    }) }}
                     {{ forms.textField({
-                        label: 'Link text'|t('olivemenus'),
+                        label: 'Item text'|t('olivemenus'),
                         id: 'custom-menu-title',
                         maxlength: 255,
                         required: true,
                     }) }}
-                    {{ forms.textField({
-                        label: 'URL'|t('olivemenus'),
-                        instructions: 'Leave blank for a heading with no link.'|t('olivemenus'),
-                        id: 'custom-menu-url',
-                        placeholder: '/contact',
-                        maxlength: 255,
-                    }) }}
+                    <div id="custom-menu-url-field">
+                        {{ forms.textField({
+                            label: 'URL'|t('olivemenus'),
+                            id: 'custom-menu-url',
+                            placeholder: '/contact',
+                            maxlength: 255,
+                        }) }}
+                    </div>
+                    {% if siteLinkOptions %}
+                        <div id="custom-menu-site-field" hidden>
+                            {{ forms.selectField({
+                                label: 'Destination site'|t('olivemenus'),
+                                id: 'custom-menu-site',
+                                options: {'': 'Choose a site'|t('olivemenus')}|merge(siteLinkOptions),
+                            }) }}
+                        </div>
+                    {% endif %}
                 </div>
                 <button type="submit" class="btn">{{ 'Add to menu'|t('olivemenus') }}</button>
             </form>
