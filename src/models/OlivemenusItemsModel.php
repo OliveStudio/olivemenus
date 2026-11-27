@@ -82,6 +82,8 @@ class OlivemenusItemsModel extends Model
     */
     public string $custom_url = '';
 
+    public string $url_suffix = '';
+
     /**
      * Class attribute
      *
@@ -137,6 +139,13 @@ class OlivemenusItemsModel extends Model
         return [
             [['id', 'menu_id', 'parent_id', 'item_order', 'entry_id'], 'integer'],
             [['name', 'custom_url', 'class', 'class_parent', 'data_json', 'target'], 'string', 'max' => 255],
+            ['url_suffix', 'string', 'max' => 255],
+            [
+                'url_suffix',
+                'match',
+                'pattern' => '~\A(?:\?[^#\s\p{C}"<>\\\\]+(?:#[^#\s\p{C}"<>\\\\]+)?|#[^#\s\p{C}"<>\\\\]+)\z~u',
+                'message' => Craft::t('olivemenus', 'Enter a query or anchor starting with ? or #, without spaces.'),
+            ],
             [['enabled', 'use_element_title', 'hide_when_unavailable'], 'boolean'],
             [['menu_id', 'parent_id', 'item_order', 'name'], 'required'],
         ];

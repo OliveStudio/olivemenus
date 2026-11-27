@@ -152,13 +152,17 @@ class MenuItemsController extends MenuAdminController
 
             $existingItem = $existingItems[$savedId] ?? null;
             $entryId = $item['entry-id'] ?? null;
+            $linkedId = $entryId === 0 || $entryId === '0' ? 0 : ($this->optionalId($entryId) ?? 0);
             $itemModel = new OlivemenusItemsModel([
                 'id' => $savedId ?? 0,
                 'menu_id' => $menuId,
                 'parent_id' => $resolvedParentIds[$parentClientId] ?? 0,
                 'item_order' => $order,
                 'name' => $this->_itemText($item, 'name'),
-                'entry_id' => $entryId === 0 || $entryId === '0' ? 0 : ($this->optionalId($entryId) ?? 0),
+                'entry_id' => $linkedId,
+                'url_suffix' => $linkedId !== 0
+                    ? trim($this->_itemText($item, 'url-suffix', $existingItem->url_suffix ?? ''))
+                    : '',
                 'custom_url' => $this->_itemText($item, 'custom-url'),
                 'class' => $this->_itemText($item, 'class'),
                 'class_parent' => $this->_itemText($item, 'class-parent'),
@@ -170,7 +174,13 @@ class MenuItemsController extends MenuAdminController
             ]);
 
             if (!$itemModel->validate()) {
-                throw new BadRequestHttpException(Craft::t('olivemenus', 'Check the settings for menu item {number}.', ['number' => $order + 1]));
+                $suffixError = $itemModel->getFirstError('url_suffix');
+                throw new BadRequestHttpException($suffixError !== null
+                    ? Craft::t('olivemenus', 'Menu item {number}: {message}', [
+                        'number' => $order + 1,
+                        'message' => $suffixError,
+                    ])
+                    : Craft::t('olivemenus', 'Check the settings for menu item {number}.', ['number' => $order + 1]));
             }
 
             $storedId = $service->saveMenuItem($itemModel);
@@ -193,9 +203,9 @@ class MenuItemsController extends MenuAdminController
         }
     }
 
-    private function _itemText(array $item, string $key): string
+    private function _itemText(array $item, string $key, string $default = ''): string
     {
-        $value = $item[$key] ?? '';
+        $value = $item[$key] ?? $default;
 
         if (!is_string($value)) {
             throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid menu item text.'));

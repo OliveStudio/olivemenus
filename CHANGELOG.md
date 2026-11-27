@@ -1,5 +1,11 @@
 # Olive Menus release notes
 
+## Unreleased
+
+### Added
+
+- Add query parameters and an anchor to a linked element URL while following the element's current address (issue #49).
+
 ## 5.1.1 - 2026-11-27
 
 ### Changed

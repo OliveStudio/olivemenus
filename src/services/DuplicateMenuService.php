@@ -21,6 +21,7 @@ final class DuplicateMenuService
         'name',
         'entry_id',
         'custom_url',
+        'url_suffix',
         'class',
         'class_parent',
         'data_json',

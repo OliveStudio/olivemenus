@@ -376,7 +376,25 @@ class OlivemenusService extends Component
         }
 
         $entryId = (int)($item['entry_id'] ?? 0);
-        return $this->getSafeLinkUrl($elements[$entryId]->url ?? '');
+        $url = $this->getSafeLinkUrl($elements[$entryId]->url ?? '');
+        $suffix = $item['url_suffix'] ?? '';
+        if ($url === '' || $suffix === '') {
+            return $url;
+        }
+
+        [$base, $fragment] = array_pad(explode('#', $url, 2), 2, null);
+        [$query, $suffixFragment] = array_pad(explode('#', $suffix, 2), 2, null);
+        if ($query !== '') {
+            if (!str_contains($base, '?')) {
+                $base .= '?';
+            } elseif (!str_ends_with($base, '?') && !str_ends_with($base, '&')) {
+                $base .= '&';
+            }
+            $base .= substr($query, 1);
+        }
+
+        $fragment = $suffixFragment ?? $fragment;
+        return $fragment === null ? $base : $base . '#' . $fragment;
     }
 
     public function getSafeLinkUrl(string $url): string

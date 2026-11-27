@@ -83,6 +83,7 @@ class OlivemenuItemsService extends Component
         $record->name = $model->name;
         $record->entry_id = $model->entry_id;
         $record->custom_url = $model->custom_url;
+        $record->url_suffix = $model->url_suffix;
         $record->class = $model->class;
         $record->class_parent = $model->class_parent;
         $record->data_json = $model->data_json;
@@ -144,6 +145,7 @@ class OlivemenuItemsService extends Component
             $arrMenuItems[$intKey]['name'] = $objItem->name;
             $arrMenuItems[$intKey]['entry_id'] = $objItem->entry_id;
             $arrMenuItems[$intKey]['custom_url'] = $objItem->custom_url;
+            $arrMenuItems[$intKey]['url_suffix'] = $objItem->url_suffix;
             $arrMenuItems[$intKey]['class'] = $objItem->class;
             $arrMenuItems[$intKey]['class_parent'] = $objItem->class_parent;
             $arrMenuItems[$intKey]['data_json'] = $objItem->data_json;

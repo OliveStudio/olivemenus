@@ -148,6 +148,22 @@ $(() => {
 
         fields.append(checkboxField('Show on the website', 'item-enabled', true));
         if (entryId !== null) {
+            const suffix = inputField('URL suffix', 'url-suffix');
+            const instructionsId = 'menu-field-' + nextId + '-suffix-help';
+            suffix.find('input').attr({
+                maxlength: 255,
+                autocomplete: 'off',
+                autocorrect: 'off',
+                autocapitalize: 'none',
+                spellcheck: 'false',
+                'aria-describedby': instructionsId,
+            });
+            suffix.find('.heading').append($('<div>', {
+                id: instructionsId,
+                class: 'instructions',
+                text: Craft.t('olivemenus', 'Add query parameters, an anchor, or both. Example: ?source=menu#overview'),
+            }));
+            fields.append(suffix);
             fields.append(checkboxField('Use the linked element title', 'item-use-element-title', false));
             fields.append(checkboxField('Hide when linked content is unavailable', 'item-hide-when-unavailable', true));
         }
@@ -318,6 +334,7 @@ $(() => {
                 'name': findField(item, 'item-name').val(),
                 'entry-id': findField(item, 'item-entry-id').val() || undefined,
                 'custom-url': findField(item, 'custom-url').val(),
+                'url-suffix': findField(item, 'url-suffix').val(),
                 'class': findField(item, 'class').val(),
                 'class-parent': findField(item, 'class-parent').val(),
                 'data-json': findField(item, 'data-json').val(),

@@ -40,6 +40,17 @@
                             {% else %}
                                 <p class="light">{{ 'This linked element is unavailable on this site.'|t('olivemenus') }}</p>
                             {% endif %}
+                            {{ forms.textField({
+                                label: 'URL suffix'|t('olivemenus'),
+                                instructions: 'Add query parameters, an anchor, or both. Example: ?source=menu#overview'|t('olivemenus'),
+                                id: settingsId ~ '-suffix',
+                                name: 'url-suffix',
+                                value: item.url_suffix,
+                                maxlength: 255,
+                                autocorrect: false,
+                                autocapitalize: false,
+                                inputAttributes: {spellcheck: 'false'},
+                            }) }}
                             {{ forms.checkboxField({
                                 label: 'Use the linked element title'|t('olivemenus'),
                                 id: settingsId ~ '-use-title',

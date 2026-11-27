@@ -107,6 +107,7 @@ class Install extends Migration
                     'name' => $this->string(255)->notNull()->defaultValue(''),
                     'entry_id' => $this->integer(11),
                     'custom_url' => $this->string(255),
+                    'url_suffix' => $this->string(255)->notNull()->defaultValue(''),
                     'class' => $this->string(255),
                     'class_parent' => $this->string(255),
                     'data_json' => $this->string(255),
