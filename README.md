@@ -1,4 +1,4 @@
-<img src="src/icon.svg" alt="" width="48" height="48">
+![Olive Menus by Olive Studio, with nested navigation in the Craft control panel](resources/olive-menus-banner.png)
 
 # Olive Menus for Craft CMS
 
@@ -7,7 +7,7 @@ Build navigation menus in the Craft control panel. Editors choose and arrange th
 - Create separate menus for a header, footer, or campaign page.
 - Combine entries, categories, assets, and Commerce products with custom links and unlinked headings.
 - Reorder and nest items, then edit labels, classes, link targets, and data attributes.
-- Manage navigation separately for each site in a multisite project.
+- Manage menus per site and copy their structure to another site you can edit.
 - Build breadcrumbs in Twig or query navigation in GraphQL.
 
 [Craft Plugin Store](https://plugins.craftcms.com/olivemenus) · [Documentation](https://github.com/OliveStudio/olivemenus/wiki) · [Changelog](CHANGELOG.md)
@@ -25,7 +25,7 @@ php craft plugin/install olivemenus
 
 ## Render your first menu
 
-1. Open **Menus** in the control panel and choose **New menu**. Use `mainMenu` as the handle.
+1. Open **Olive Menus** in the control panel and choose **New menu**. Use `mainMenu` as the handle.
 2. Open the menu, add entries or custom links, then choose **Save menu**.
 3. Add this snippet to your layout where the navigation should appear.
 
