@@ -37,6 +37,10 @@ class OlivemenusItemsModel extends Model
 
     public const KINDS = [self::KIND_LINK, self::KIND_HEADING, self::KIND_GROUP, self::KIND_SITE];
 
+    public const SOURCE_SORTS = ['newest', 'oldest', 'title'];
+    public const DEFAULT_SOURCE_LIMIT = 10;
+    public const MAX_SOURCE_LIMIT = 50;
+
     // Public Properties
     // =========================================================================
 
@@ -95,6 +99,12 @@ class OlivemenusItemsModel extends Model
 
     public string $target_site_uid = '';
 
+    public string $source_section_uid = '';
+
+    public string $source_sort = 'newest';
+
+    public int $source_limit = self::DEFAULT_SOURCE_LIMIT;
+
     /**
      * Class attribute
      *
@@ -152,7 +162,9 @@ class OlivemenusItemsModel extends Model
             [['name', 'custom_url', 'class', 'class_parent', 'data_json', 'target'], 'string', 'max' => 255],
             ['url_suffix', 'string', 'max' => 255],
             ['kind', 'in', 'range' => self::KINDS, 'strict' => true, 'skipOnEmpty' => false],
-            ['target_site_uid', 'string', 'max' => 36],
+            [['target_site_uid', 'source_section_uid'], 'string', 'max' => 36],
+            ['source_sort', 'in', 'range' => self::SOURCE_SORTS, 'strict' => true, 'skipOnEmpty' => false],
+            ['source_limit', 'integer', 'min' => 1, 'max' => self::MAX_SOURCE_LIMIT],
             ['target_site_uid', 'required', 'when' => static fn (self $item): bool => $item->kind === self::KIND_SITE],
             [
                 'url_suffix',

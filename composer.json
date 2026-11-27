@@ -2,7 +2,7 @@
   "name": "olivestudio/craft-olivemenus",
   "description": "Build nested, site-specific navigation menus from Craft content and custom links.",
   "type": "craft-plugin",
-  "version": "5.1.1",
+  "version": "5.2.0",
   "keywords": [
     "craft",
     "cms",

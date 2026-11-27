@@ -1,0 +1,41 @@
+{% import "_includes/forms" as forms %}
+
+{% set options = {'': 'Manual items only'|t('olivemenus')}|merge(dynamicSectionOptions) %}
+{% if sourceUid and options[sourceUid] is not defined %}
+    {% set options = options|merge({(sourceUid): 'Current section is unavailable'|t('olivemenus')}) %}
+{% endif %}
+
+{{ forms.selectField({
+    label: 'Add entries from'|t('olivemenus'),
+    instructions: 'Published entries appear after any items you add manually.'|t('olivemenus'),
+    id: settingsId ~ '-source-section',
+    name: 'source-section-uid',
+    options: options,
+    value: sourceUid,
+}) }}
+
+<div class="group-source-options"{% if not sourceUid %} hidden{% endif %}>
+    {{ forms.selectField({
+        label: 'Order entries by'|t('olivemenus'),
+        id: settingsId ~ '-source-sort',
+        name: 'source-sort',
+        options: {
+            newest: 'Newest first'|t('olivemenus'),
+            oldest: 'Oldest first'|t('olivemenus'),
+            title: 'Title A–Z'|t('olivemenus'),
+        },
+        value: sourceSort,
+        disabled: not sourceUid,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Maximum entries'|t('olivemenus'),
+        id: settingsId ~ '-source-limit',
+        name: 'source-limit',
+        type: 'number',
+        min: 1,
+        max: 50,
+        value: sourceLimit,
+        disabled: not sourceUid,
+    }) }}
+</div>

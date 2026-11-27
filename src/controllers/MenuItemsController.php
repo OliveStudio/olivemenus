@@ -26,6 +26,7 @@ class MenuItemsController extends MenuAdminController
             'menu' => $menu,
             'elementTypes' => Olivemenus::$plugin->olivemenus->getLinkableElementTypes(),
             'siteLinkOptions' => $items->getSiteLinkOptions(),
+            'dynamicSectionOptions' => $items->getDynamicSectionOptions($menu->site_id),
             'menuItemsMarkup' => $items->getMenuItemsAdminMarkup($menu->id, $menu->site_id),
             'objSite' => $this->editableSite($menu->site_id),
         ]);
@@ -50,7 +51,7 @@ class MenuItemsController extends MenuAdminController
                 if ($menuId === false) {
                     throw new BadRequestHttpException(Craft::t('olivemenus', 'The menu no longer exists.'));
                 }
-                $this->_saveItems((int)$menuId, $submittedItems, $deletedIds);
+                $this->_saveItems((int)$menuId, $menu->site_id, $submittedItems, $deletedIds);
             });
         } catch (BadRequestHttpException $exception) {
             return $this->_itemSaveFailure($exception->getMessage(), $redirect);
@@ -116,7 +117,7 @@ class MenuItemsController extends MenuAdminController
         return array_unique(array_map($this->positiveId(...), explode(',', $deletedItems)));
     }
 
-    private function _saveItems(int $menuId, array $submittedItems, array $deletedIds): void
+    private function _saveItems(int $menuId, int $siteId, array $submittedItems, array $deletedIds): void
     {
         $service = Olivemenus::$plugin->olivemenuItems;
         $existingItems = OlivemenusItemsRecord::find()
@@ -126,6 +127,7 @@ class MenuItemsController extends MenuAdminController
         $deletedIds = array_fill_keys($deletedIds, true);
         $resolvedParentIds = [];
         $savedIds = [];
+        $dynamicSectionOptions = $service->getDynamicSectionOptions($siteId);
 
         if (!empty(array_diff_key($deletedIds, $existingItems))) {
             throw new BadRequestHttpException(Craft::t('olivemenus', 'A menu item is missing or belongs to another menu. Reload and try again.'));
@@ -164,6 +166,24 @@ class MenuItemsController extends MenuAdminController
                     ]));
                 }
             }
+            $sourceSectionUid = '';
+            $sourceSort = 'newest';
+            $sourceLimit = OlivemenusItemsModel::DEFAULT_SOURCE_LIMIT;
+            if ($kind === OlivemenusItemsModel::KIND_GROUP) {
+                $sourceSectionUid = $this->_itemText($item, 'source-section-uid', $existingItem->source_section_uid ?? '');
+                if ($sourceSectionUid !== '') {
+                    $sourceSort = $this->_itemText($item, 'source-sort', $existingItem->source_sort ?? $sourceSort);
+                    $sourceLimit = $this->positiveId($item['source-limit'] ?? $existingItem->source_limit ?? $sourceLimit);
+                    $sourceUnchanged = $sourceSectionUid === ($existingItem->source_section_uid ?? '')
+                        && $sourceSort === ($existingItem->source_sort ?? null)
+                        && $sourceLimit === (int)($existingItem->source_limit ?? 0);
+                    if (!$sourceUnchanged && !isset($dynamicSectionOptions[$sourceSectionUid])) {
+                        throw new BadRequestHttpException(Craft::t('olivemenus', 'Choose an available section for menu item {number}.', [
+                            'number' => $order + 1,
+                        ]));
+                    }
+                }
+            }
             $entryId = $kind === OlivemenusItemsModel::KIND_LINK ? ($item['entry-id'] ?? null) : null;
             $linkedId = $entryId === 0 || $entryId === '0' ? 0 : ($this->optionalId($entryId) ?? 0);
             $itemModel = new OlivemenusItemsModel([
@@ -179,6 +199,9 @@ class MenuItemsController extends MenuAdminController
                 'custom_url' => $kind === OlivemenusItemsModel::KIND_LINK ? $this->_itemText($item, 'custom-url') : '',
                 'kind' => $kind,
                 'target_site_uid' => $targetSiteUid,
+                'source_section_uid' => $sourceSectionUid,
+                'source_sort' => $sourceSort,
+                'source_limit' => $sourceLimit,
                 'class' => $this->_itemText($item, 'class'),
                 'class_parent' => $this->_itemText($item, 'class-parent'),
                 'data_json' => $this->_itemText($item, 'data-json'),
@@ -189,11 +212,13 @@ class MenuItemsController extends MenuAdminController
             ]);
 
             if (!$itemModel->validate()) {
-                $suffixError = $itemModel->getFirstError('url_suffix');
-                throw new BadRequestHttpException($suffixError !== null
+                $fieldError = $itemModel->getFirstError('url_suffix')
+                    ?? $itemModel->getFirstError('source_sort')
+                    ?? $itemModel->getFirstError('source_limit');
+                throw new BadRequestHttpException($fieldError !== null
                     ? Craft::t('olivemenus', 'Menu item {number}: {message}', [
                         'number' => $order + 1,
-                        'message' => $suffixError,
+                        'message' => $fieldError,
                     ])
                     : Craft::t('olivemenus', 'Check the settings for menu item {number}.', ['number' => $order + 1]));
             }

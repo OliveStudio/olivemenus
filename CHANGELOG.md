@@ -1,10 +1,13 @@
 # Olive Menus release notes
 
-## Unreleased
+## 5.2.0 - 2026-11-28
 
 ### Added
 
-- Use `getMenuContext()` to render the current or selected menu item's siblings, ancestors and branch in Twig.
+- Create headings, groups and site links from the menu editor.
+- Fill a group with published entries from the menu's site. Choose the source section, sort order and maximum, with manually added items kept first.
+- Use `getMenuContext()` to render the current or selected item's siblings, ancestors and branch in Twig.
+- Query node types and identify dynamically generated links through GraphQL.
 - Add query parameters and an anchor to a linked element URL while following the element's current address (issue #49).
 
 ## 5.1.1 - 2026-11-27

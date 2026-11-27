@@ -8,6 +8,8 @@ Build navigation menus in the Craft control panel. Editors choose and arrange th
 - Combine entries, categories, assets, and Commerce products with custom links and unlinked headings.
 - Reorder and nest items, then edit labels, classes, link targets, and data attributes.
 - Add a suffix like `?source=menu#overview` to a linked item so its destination follows the linked content.
+- Group items under a label, or fill a group automatically with published entries from a section.
+- Link to another Craft site's home page without copying its URL.
 - Manage menus per site and copy their structure to another site you can edit.
 - Build breadcrumbs in Twig or query navigation in GraphQL.
 

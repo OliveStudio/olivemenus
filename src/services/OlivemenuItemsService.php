@@ -86,6 +86,9 @@ class OlivemenuItemsService extends Component
         $record->url_suffix = $model->url_suffix;
         $record->kind = $model->kind;
         $record->target_site_uid = $model->target_site_uid;
+        $record->source_section_uid = $model->source_section_uid;
+        $record->source_sort = $model->source_sort;
+        $record->source_limit = $model->source_limit;
         $record->class = $model->class;
         $record->class_parent = $model->class_parent;
         $record->data_json = $model->data_json;
@@ -150,6 +153,9 @@ class OlivemenuItemsService extends Component
             $arrMenuItems[$intKey]['url_suffix'] = $objItem->url_suffix;
             $arrMenuItems[$intKey]['kind'] = $objItem->kind;
             $arrMenuItems[$intKey]['target_site_uid'] = $objItem->target_site_uid;
+            $arrMenuItems[$intKey]['source_section_uid'] = $objItem->source_section_uid;
+            $arrMenuItems[$intKey]['source_sort'] = $objItem->source_sort;
+            $arrMenuItems[$intKey]['source_limit'] = (int)$objItem->source_limit;
             $arrMenuItems[$intKey]['class'] = $objItem->class;
             $arrMenuItems[$intKey]['class_parent'] = $objItem->class_parent;
             $arrMenuItems[$intKey]['data_json'] = $objItem->data_json;
@@ -172,6 +178,20 @@ class OlivemenuItemsService extends Component
         foreach (Craft::$app->getSites()->getAllSites(false) as $site) {
             if ($menus->getSiteLinkUrl($site->uid) !== '') {
                 $options[$site->uid] = $site->getName();
+            }
+        }
+
+        return $options;
+    }
+
+    public function getDynamicSectionOptions(int $siteId): array
+    {
+        $options = [];
+        $user = Craft::$app->getUser()->getIdentity();
+        foreach (Craft::$app->getEntries()->getAllSections() as $section) {
+            if (($section->getSiteSettings()[$siteId]->hasUrls ?? false)
+                && $user?->can("viewEntries:$section->uid")) {
+                $options[$section->uid] = $section->name;
             }
         }
 
@@ -203,7 +223,12 @@ class OlivemenuItemsService extends Component
 
         return Craft::$app->getView()->renderTemplate(
             'olivemenus/_menu-item',
-            ['items' => $items, 'elements' => $links, 'siteLinkOptions' => $this->getSiteLinkOptions()],
+            [
+                'items' => $items,
+                'elements' => $links,
+                'siteLinkOptions' => $this->getSiteLinkOptions(),
+                'dynamicSectionOptions' => $this->getDynamicSectionOptions($siteId),
+            ],
             View::TEMPLATE_MODE_CP,
         );
     }

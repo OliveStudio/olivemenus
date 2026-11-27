@@ -1,8 +1,8 @@
 {% import _self as menuItems %}
 
-{{ menuItems.render(items, elements, siteLinkOptions) }}
+{{ menuItems.render(items, elements, siteLinkOptions, dynamicSectionOptions) }}
 
-{% macro render(items, elements, siteLinkOptions) %}
+{% macro render(items, elements, siteLinkOptions, dynamicSectionOptions) %}
     {% import _self as menuItems %}
     {% import "_includes/forms" as forms %}
     {% for item in items %}
@@ -45,7 +45,14 @@
                             maxlength: 255,
                             required: true,
                         }) }}
-                        {% if kind == 'site' %}
+                        {% if kind == 'group' %}
+                            {% include "olivemenus/_group-source" with {
+                                settingsId: settingsId,
+                                sourceUid: item.source_section_uid,
+                                sourceSort: item.source_sort,
+                                sourceLimit: item.source_limit,
+                            } %}
+                        {% elseif kind == 'site' %}
                             {% set options = siteLinkOptions %}
                             {% if options[item.target_site_uid] is not defined %}
                                 {% set options = {(item.target_site_uid): 'Destination is unavailable'|t('olivemenus')}|merge(options) %}
@@ -142,7 +149,7 @@
                 </div>
             </div>
             {% if item.children ?? [] %}
-                <ol>{{ menuItems.render(item.children, elements, siteLinkOptions) }}</ol>
+                <ol>{{ menuItems.render(item.children, elements, siteLinkOptions, dynamicSectionOptions) }}</ol>
             {% endif %}
         </li>
     {% endfor %}

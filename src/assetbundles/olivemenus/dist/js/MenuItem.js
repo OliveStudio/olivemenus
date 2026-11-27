@@ -153,6 +153,19 @@ $(() => {
         } else if (kind === 'link' && entryId === null) {
             fields.append(inputField('URL', 'custom-url', customUrl));
         }
+        if (kind === 'group') {
+            const sourceTemplate = document.getElementById('group-source-template');
+            const sourceFields = sourceTemplate.content.cloneNode(true);
+            for (const field of sourceFields.querySelectorAll('[id], [for], [aria-describedby]')) {
+                for (const name of ['id', 'for', 'aria-describedby']) {
+                    const value = field.getAttribute(name);
+                    if (value) {
+                        field.setAttribute(name, value.replaceAll('group-source-template', settingsId));
+                    }
+                }
+            }
+            fields.append(sourceFields);
+        }
         if (kind !== 'link') {
             heading.find('.menu-title').after($('<span>', {
                 class: 'light',
@@ -315,6 +328,13 @@ $(() => {
         });
     });
 
+    menuList.on('change', '[name="source-section-uid"]', function () {
+        const manualOnly = this.value === '';
+        $(this).closest('.inner').find('.group-source-options')
+            .prop('hidden', manualOnly)
+            .find('select, input').prop('disabled', manualOnly);
+    });
+
     itemKind.on('change', () => {
         const kind = itemKind.val();
         $('#custom-menu-url-field').prop('hidden', kind !== 'link');
@@ -363,6 +383,9 @@ $(() => {
                 'name': findField(item, 'item-name').val(),
                 'kind': findField(item, 'kind').val(),
                 'target-site-uid': findField(item, 'target-site-uid').val(),
+                'source-section-uid': findField(item, 'source-section-uid').val(),
+                'source-sort': findField(item, 'source-sort').val(),
+                'source-limit': findField(item, 'source-limit').val(),
                 'entry-id': findField(item, 'item-entry-id').val() || undefined,
                 'custom-url': findField(item, 'custom-url').val(),
                 'url-suffix': findField(item, 'url-suffix').val(),

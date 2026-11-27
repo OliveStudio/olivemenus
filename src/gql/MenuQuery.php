@@ -3,10 +3,12 @@
 namespace olivestudio\olivemenus\gql;
 
 use Craft;
+use craft\elements\db\EntryQuery;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql as GqlHelper;
+use craft\models\Section;
 use craft\services\Gql;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
@@ -86,8 +88,36 @@ final class MenuQuery
             'name' => $menu->name,
             'handle' => $menu->handle,
             'site' => $site->handle,
-            'items' => $menus->getMenuDataById($menu->id, $site->id),
+            'items' => $menus->getMenuDataById($menu->id, $site->id, self::filterEntrySource(...)),
         ];
+    }
+
+    private static function filterEntrySource(Section $section, EntryQuery $query): bool
+    {
+        if (!GqlHelper::canSchema("sections.$section->uid")) {
+            return false;
+        }
+
+        $scopes = GqlHelper::extractAllowedEntitiesFromSchema();
+        if (isset($scopes['entrytypes'])) {
+            $typeIds = [];
+            foreach ($section->getEntryTypes() as $type) {
+                if (in_array($type->uid, $scopes['entrytypes'], true)) {
+                    $typeIds[] = $type->id;
+                }
+            }
+            if (!$typeIds) {
+                return false;
+            }
+            $query->typeId($typeIds);
+        }
+
+        // Craft 5.12 added authenticated schema users. Match core’s authorization filter.
+        if (method_exists(GqlHelper::class, 'getSchemaUser') && GqlHelper::getSchemaUser() !== null) {
+            $query->editable();
+        }
+
+        return true;
     }
 
     private static function menuType(): ObjectType
@@ -116,6 +146,10 @@ final class MenuQuery
                     'resolve' => static fn (array $item): ?string => $item['url'] === '' ? null : $item['url'],
                 ],
                 'kind' => Type::nonNull(Type::string()),
+                'isDynamic' => [
+                    'type' => Type::nonNull(Type::boolean()),
+                    'resolve' => static fn (array $item): bool => $item['isDynamic'] ?? false,
+                ],
                 'target' => Type::nonNull(Type::string()),
                 'linkClass' => [
                     'type' => Type::string(),

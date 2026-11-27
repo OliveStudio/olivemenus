@@ -61,7 +61,7 @@ class Olivemenus extends Plugin
      *
      * @var string
      */
-    public string $schemaVersion = '1.1.16';
+    public string $schemaVersion = '1.1.17';
 
     // Public Methods
     // =========================================================================

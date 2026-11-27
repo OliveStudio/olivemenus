@@ -72,6 +72,14 @@
 
         <section id="menu-items" aria-labelledby="menu-structure">
             <h2 id="menu-structure">{{ 'Menu structure'|t('olivemenus') }}</h2>
+            <template id="group-source-template">
+                {% include "olivemenus/_group-source" with {
+                    settingsId: 'group-source-template',
+                    sourceUid: '',
+                    sourceSort: 'newest',
+                    sourceLimit: 10,
+                } %}
+            </template>
             <p class="light">{{ 'Drag items to arrange them, or use the move controls in each item’s settings.'|t('olivemenus') }}</p>
             <form method="post" accept-charset="UTF-8" id="menu-items-form">
                 {{ csrfInput() }}

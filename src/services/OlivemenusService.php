@@ -231,11 +231,12 @@ class OlivemenusService extends Component
         return $this->getMenuDataById((int)$menu->id, $siteId);
     }
 
-    public function getMenuDataById(int $menuId, int $siteId): array
+    public function getMenuDataById(int $menuId, int $siteId, ?callable $filterEntrySource = null): array
     {
         return $this->_enrichMenuItems(
             Olivemenus::$plugin->olivemenuItems->getMenuItems($menuId),
             $siteId,
+            $filterEntrySource,
         );
     }
 
@@ -293,7 +294,7 @@ class OlivemenusService extends Component
         return [];
     }
 
-    private function _enrichMenuItems(array $items, int $siteId): array
+    private function _enrichMenuItems(array $items, int $siteId, ?callable $filterEntrySource): array
     {
         if (empty($items)) {
             return [];
@@ -302,6 +303,7 @@ class OlivemenusService extends Component
         $items = array_values(array_filter($items, static fn (array $item): bool => (bool)($item['enabled'] ?? true)));
         $elements = $this->getLinkedElements($this->_collectEntryIds($items), $siteId);
         $items = $this->_applyItemEnrichment($items, $elements);
+        $this->_appendGroupSources($items, $siteId, $filterEntrySource);
         $this->_markAncestorActive($items);
 
         return $items;
@@ -368,6 +370,7 @@ class OlivemenusService extends Component
                 ? $item['target']
                 : '_self';
             $item['dataAttributes'] = $this->_parseDataAttributes($item['data_json'] ?? '');
+            $item['isDynamic'] = false;
             $item['isActive'] = $this->_isUrlActive($item['url']);
             $item['isAncestorActive'] = false;
 
@@ -380,6 +383,83 @@ class OlivemenusService extends Component
         }
 
         return $enriched;
+    }
+
+    private function _appendGroupSources(array &$items, int $siteId, ?callable $filterEntrySource): void
+    {
+        foreach ($items as &$item) {
+            if (!empty($item['children'])) {
+                $this->_appendGroupSources($item['children'], $siteId, $filterEntrySource);
+            }
+            if (($item['kind'] ?? null) !== OlivemenusItemsModel::KIND_GROUP || empty($item['source_section_uid'])) {
+                continue;
+            }
+
+            $section = Craft::$app->getEntries()->getSectionByUid($item['source_section_uid']);
+            if (!$section || !($section->getSiteSettings()[$siteId]->hasUrls ?? false)) {
+                continue;
+            }
+
+            $order = match ($item['source_sort']) {
+                'oldest' => ['entries.postDate' => SORT_ASC, 'elements.id' => SORT_ASC],
+                'title' => ['title' => SORT_ASC, 'elements.id' => SORT_ASC],
+                default => ['entries.postDate' => SORT_DESC, 'elements.id' => SORT_ASC],
+            };
+            $query = Entry::find()
+                ->sectionId($section->id)
+                ->siteId($siteId)
+                ->status(Entry::STATUS_LIVE)
+                ->drafts(false)
+                ->revisions(false)
+                ->orderBy($order)
+                ->limit($item['source_limit']);
+            if ($filterEntrySource && !$filterEntrySource($section, $query)) {
+                continue;
+            }
+
+            $manualEntryIds = [];
+            foreach ($item['children'] ?? [] as $child) {
+                if (!empty($child['entry_id']) && empty($child['custom_url'])) {
+                    $manualEntryIds[] = (int)$child['entry_id'];
+                }
+            }
+            if ($manualEntryIds !== []) {
+                $query->id(['not', ...$manualEntryIds]);
+            }
+
+            foreach ($query->all() as $entry) {
+                $url = $this->getSafeLinkUrl($entry->getUrl() ?? '');
+                if ($url === '') {
+                    continue;
+                }
+
+                $item['children'][] = [
+                    'id' => "dynamic-{$item['id']}-$entry->id",
+                    'menu_id' => $item['menu_id'],
+                    'parent_id' => $item['id'],
+                    'item_order' => count($item['children'] ?? []),
+                    'entry_id' => $entry->id,
+                    'name' => (string)$entry->title,
+                    'custom_url' => '',
+                    'url_suffix' => '',
+                    'data_json' => '',
+                    'enabled' => true,
+                    'use_element_title' => true,
+                    'hide_when_unavailable' => true,
+                    'kind' => OlivemenusItemsModel::KIND_LINK,
+                    'isDynamic' => true,
+                    'url' => $url,
+                    'element' => $entry,
+                    'target' => '_self',
+                    'class' => '',
+                    'class_parent' => '',
+                    'dataAttributes' => [],
+                    'isActive' => $this->_isUrlActive($url),
+                    'isAncestorActive' => false,
+                    'children' => [],
+                ];
+            }
+        }
     }
 
     private function _markAncestorActive(array &$items): bool
@@ -545,7 +625,7 @@ class OlivemenusService extends Component
         $menuItemUrl = $menuItem['url'] ?? '';
         $target = $menuItem['target'] ?? '_self';
 
-        $localHTML = '<li id="menu-item-' . (int)$menuItem['id'] . '" class="' . $menuItemClassAttr . '">';
+        $localHTML = '<li id="menu-item-' . Html::encode((string)$menuItem['id']) . '" class="' . $menuItemClassAttr . '">';
 
         if ($menuItemUrl) {
             $rel = $target === '_blank' ? ' rel="noopener"' : '';
