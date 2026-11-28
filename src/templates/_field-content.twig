@@ -16,6 +16,7 @@
     {{ csrfInput() }}
     {{ actionInput('olivemenus/field-content/save') }}
     {{ hiddenInput('menuId', menu.id) }}
+    {{ hiddenInput('fieldVersion', fieldVersion) }}
     {% if item %}
         {{ hiddenInput('itemId', item.id) }}
     {% endif %}

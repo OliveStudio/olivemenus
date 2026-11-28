@@ -80,12 +80,8 @@
                                 heading: 'Linked content must exist on the destination site.'|t('olivemenus'),
                                 items: duplicateSites|map(site => {
                                     label: site.name,
-                                    attributes: {
-                                        type: 'submit',
-                                        form: duplicateFormId,
-                                        name: 'targetSiteId',
-                                        value: site.id,
-                                    },
+                                    action: 'olivemenus/menu/duplicate-menu',
+                                    params: {menuId: menu.id, targetSiteId: site.id},
                                 }),
                             }], {
                                 buttonLabel: 'Copy to site'|t('olivemenus'),

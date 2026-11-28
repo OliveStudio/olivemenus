@@ -7,7 +7,7 @@ use craft\helpers\UrlHelper;
 use craft\models\Site;
 use craft\web\Response;
 use InvalidArgumentException;
-use olivestudio\olivemenus\records\OlivemenusRecord;
+
 use olivestudio\olivemenus\services\SiteVariantService;
 use RuntimeException;
 use yii\db\Exception as DbException;
@@ -18,9 +18,9 @@ final class SiteVariantsController extends MenuAdminController
     {
         $menu = $this->editableMenu($menuId);
         $siteService = Craft::$app->getSites();
-        $source = $menu->source_menu_uid !== null
-            ? OlivemenusRecord::findOne(['uid' => $menu->source_menu_uid])
-            : null;
+        $variants = new SiteVariantService();
+        $source = $variants->getSourceMenu($menu->source_menu_uid);
+        $isLinked = $source !== null;
         if ($source && !in_array((int)$source->site_id, $siteService->getEditableSiteIds(), true)) {
             $source = null;
         }
@@ -29,7 +29,8 @@ final class SiteVariantsController extends MenuAdminController
             'menu' => $menu,
             'site' => $this->editableSite($menu->site_id),
             'source' => $source,
-            'variants' => (new SiteVariantService())->variants($menu),
+            'isLinked' => $isLinked,
+            'variants' => $variants->variants($menu),
             'sites' => array_values(array_filter($siteService->getEditableSites(), static fn (Site $site): bool =>
                 $site->id !== $menu->site_id && $site->getEnabled())),
         ]);

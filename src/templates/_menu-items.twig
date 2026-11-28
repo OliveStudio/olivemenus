@@ -20,7 +20,7 @@
         {% if isDraft %}
             <a class="btn" href="{{ cpUrl('olivemenus/menu-preview/' ~ menu.id) }}">{{ 'Preview saved draft'|t('olivemenus') }}</a>
         {% endif %}
-        <button type="submit" class="btn submit" form="menu-items-form">{{ (isDraft ? 'Save draft' : 'Save menu')|t('olivemenus') }}</button>
+        <button type="submit" class="btn submit" form="menu-items-form" disabled>{{ (isDraft ? 'Save draft' : 'Save menu')|t('olivemenus') }}</button>
     </div>
 {% endblock %}
 
@@ -69,7 +69,7 @@
             <h2 id="add-menu-items">{{ 'Add menu items'|t('olivemenus') }}</h2>
             <div class="buttons">
                 {% for elementType, label in elementTypes %}
-                    <button type="button" class="btn add icon" data-menu-element-type="{{ elementType }}" data-site-id="{{ menu.site_id }}">
+                    <button type="button" class="btn add icon" disabled data-menu-element-type="{{ elementType }}" data-site-id="{{ menu.site_id }}">
                         {{ label }}
                     </button>
                 {% endfor %}
@@ -116,7 +116,7 @@
                         </div>
                     {% endif %}
                 </div>
-                <button type="submit" class="btn">{{ 'Add to menu'|t('olivemenus') }}</button>
+                <button type="submit" class="btn" disabled>{{ 'Add to menu'|t('olivemenus') }}</button>
             </form>
         </aside>
 

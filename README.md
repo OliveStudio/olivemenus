@@ -11,6 +11,10 @@ Build navigation menus in the Craft control panel. Editors choose and arrange th
 - Group items under a label, or fill a group automatically with published entries from a section.
 - Link to another Craft site's home page without copying its URL.
 - Manage menus per site and copy their structure to another site you can edit.
+- Give menus and individual items their own Craft fields.
+- Review drafts in the control panel and restore published versions from history.
+- Set visibility by site, audience, user group or date, and organize larger menus into columns.
+- Sync structure across site variants and move menus between projects with JSON.
 - Build breadcrumbs in Twig or query navigation in GraphQL.
 
 [Craft Plugin Store](https://plugins.craftcms.com/olivemenus) · [Documentation](https://github.com/OliveStudio/olivemenus/wiki) · [Changelog](CHANGELOG.md)

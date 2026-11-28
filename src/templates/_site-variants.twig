@@ -7,7 +7,7 @@
 ] %}
 
 {% block content %}
-    {% if menu.source_menu_uid %}
+    {% if isLinked %}
         <p>{{ 'This menu follows the structure of its source. Edit translated labels and links here.'|t('olivemenus') }}</p>
         {% if source %}
             <a class="btn" href="{{ cpUrl('olivemenus/site-variants/' ~ source.id) }}">{{ 'Open source menu'|t('olivemenus') }}</a>

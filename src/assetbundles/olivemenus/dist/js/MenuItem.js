@@ -1,6 +1,8 @@
 $(() => {
     const menuList = $('ol#menu-list');
     const menuForm = $('#menu-items-form');
+    const customItemForm = $('#menu-items-sidebar form.custom-url');
+    const saveButton = $('[form="menu-items-form"][type="submit"]');
     const placeholder = $('#menu-list-placeholder');
     const saveFeedback = $('<div>', {class: 'error', role: 'alert', tabindex: '-1'}).prependTo(menuForm);
     const deletedIds = new Set();
@@ -351,7 +353,7 @@ $(() => {
         siteSelector.prop('required', kind === 'site');
     });
 
-    $('#menu-items-sidebar form.custom-url').on('submit', (event) => {
+    customItemForm.on('submit', (event) => {
         event.preventDefault();
 
         const title = $('#custom-menu-title');
@@ -425,7 +427,6 @@ $(() => {
 
         saving = true;
         saveFeedback.empty();
-        const saveButton = $('[form="menu-items-form"][type="submit"]');
         saveButton.prop('disabled', true);
 
         const action = menuForm.find('[name="action"]').val();
@@ -454,4 +455,8 @@ $(() => {
             saveFeedback.text(typeof message === 'string' ? message : Craft.t('olivemenus', 'Menu items could not be saved. Please try again.')).trigger('focus');
         });
     });
+
+    saveButton.prop('disabled', false);
+    customItemForm.find('button[type="submit"]').prop('disabled', false);
+    $('#menu-items-sidebar [data-menu-element-type]').prop('disabled', false);
 });

@@ -97,7 +97,11 @@ final class DuplicateMenuService
 
     private function _insertCopy(OlivemenusModel $source, int $targetSiteId, string $name, string $handle): int
     {
-        if (!OlivemenusRecord::find()->where(['id' => $source->id, 'site_id' => $source->site_id])->exists()) {
+        $sourceId = Craft::$app->getDb()->createCommand(
+            'SELECT [[id]] FROM {{%olivemenus}} WHERE [[id]] = :id AND [[site_id]] = :siteId FOR UPDATE',
+            [':id' => $source->id, ':siteId' => $source->site_id],
+        )->queryScalar();
+        if ($sourceId === false) {
             throw new RuntimeException('The source menu no longer exists.');
         }
 

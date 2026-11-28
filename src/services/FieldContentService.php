@@ -13,6 +13,7 @@ use craft\fields\Date;
 use craft\fields\Dropdown;
 use craft\fields\Email;
 use craft\fields\Lightswitch;
+use craft\fields\Link;
 use craft\fields\Matrix;
 use craft\fields\MultiSelect;
 use craft\fields\Number;
@@ -21,6 +22,8 @@ use craft\fields\RadioButtons;
 use craft\fields\Time;
 use craft\fields\Url;
 use craft\helpers\DateTimeHelper;
+use DateTimeInterface;
+use DateTimeZone;
 use InvalidArgumentException;
 use olivestudio\olivemenus\elements\MenuFieldContent;
 use olivestudio\olivemenus\elements\NavigationFieldContent;
@@ -40,6 +43,7 @@ final class FieldContentService
         Dropdown::class,
         Email::class,
         Lightswitch::class,
+        Link::class,
         MultiSelect::class,
         Number::class,
         PlainText::class,
@@ -202,22 +206,56 @@ final class FieldContentService
             return ['values' => [], 'warnings' => []];
         }
 
-        return $this->portableValues($this->layoutFields($content), $this->snapshotValues($content));
+        $fields = $this->layoutFields($content);
+        $values = $this->snapshotValues($content);
+        foreach ($fields as $handle => $field) {
+            if ($field instanceof Date && $field->showTimeZone) {
+                $value = $content->getFieldValue($handle);
+                if ($value instanceof DateTimeInterface && $value->getTimezone()->getLocation()) {
+                    $values[$handle] = ['date' => $values[$handle], 'tz' => $value->getTimezone()->getName()];
+                }
+            }
+        }
+
+        return $this->portableValues($fields, $values);
     }
 
     /** @return array{values: array, warnings: string[]} */
-    public function reviewPortableValues(string $scope, array $values): array
+    public function reviewPortableValues(string $scope, array $values, int $siteId): array
     {
         if (!in_array($scope, [FieldLayoutsService::MENU, FieldLayoutsService::NODE], true)) {
             throw new InvalidArgumentException('Unknown field layout scope.');
         }
 
+        $layout = FieldLayoutsService::layout($scope);
         $fields = [];
-        foreach (FieldLayoutsService::layout($scope)->getCustomFields() as $field) {
+        foreach ($layout->getCustomFields() as $field) {
             $fields[$field->handle] = $field;
         }
 
-        return $this->portableValues($fields, $values);
+        $review = $this->portableValues($fields, $values);
+        if (!$review['values']) {
+            return $review;
+        }
+
+        $type = $scope === FieldLayoutsService::MENU ? MenuFieldContent::class : NodeFieldContent::class;
+        $content = new $type(['siteId' => $siteId, 'fieldLayoutId' => $layout->id]);
+        $content->setScenario(Element::SCENARIO_LIVE);
+        $content->setFieldValues($review['values']);
+        $handles = array_keys($review['values']);
+        $attributes = array_map(static fn (string $handle): string => "field:$handle", $handles);
+        $content->validate($attributes);
+
+        foreach ($handles as $handle) {
+            if ($content->hasErrors("field:$handle") || $content->hasErrors($handle)) {
+                unset($review['values'][$handle]);
+                $review['warnings'][] = Craft::t('olivemenus', 'Skipped field “{field}” because its value is not valid for the destination field.', [
+                    'field' => $handle,
+                ]);
+            }
+        }
+
+        return $review;
     }
 
     /** @return string[] Warnings for values that could not be matched to portable fields. */
@@ -229,7 +267,7 @@ final class FieldContentService
 
         $content = $this->getEditorContent($menuId, $itemId);
         $scope = $itemId === null ? FieldLayoutsService::MENU : FieldLayoutsService::NODE;
-        ['values' => $portable, 'warnings' => $warnings] = $this->reviewPortableValues($scope, $values);
+        ['values' => $portable, 'warnings' => $warnings] = $this->reviewPortableValues($scope, $values, $content->siteId);
         if ($portable) {
             $content->setFieldValues($portable);
             if (!$this->saveContent($content, $menuId, $itemId)) {
@@ -330,12 +368,49 @@ final class FieldContentService
             Checkboxes::class, MultiSelect::class => is_array($value) && array_is_list($value)
                 && !array_filter($value, static fn (mixed $option): bool => !is_string($option)),
             Color::class => is_string($value) && (bool)preg_match('/\A#?(?:[a-f0-9]{3}|[a-f0-9]{6}|[a-f0-9]{8})\z/i', $value),
-            Date::class => is_string($value) && DateTimeHelper::isIso8601($value),
+            Date::class => $this->acceptsPortableDate($value),
+            Link::class => $this->acceptsPortableLink($value),
             Lightswitch::class => is_bool($value),
             Number::class => (is_int($value) || is_float($value)) && is_finite((float)$value),
             Time::class => is_string($value) && (bool)preg_match('/\A(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\z/', $value),
             default => is_string($value),
         };
+    }
+
+    private function acceptsPortableDate(mixed $value): bool
+    {
+        if (is_string($value)) {
+            return DateTimeHelper::isIso8601($value);
+        }
+
+        return is_array($value) && count($value) === 2 &&
+            DateTimeHelper::isIso8601($value['date'] ?? null) &&
+            is_string($value['tz'] ?? null) &&
+            in_array($value['tz'], DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC), true);
+    }
+
+    private function acceptsPortableLink(mixed $value): bool
+    {
+        if (is_string($value)) {
+            return true;
+        }
+
+        if (!is_array($value) || !is_string($value['value'] ?? null) ||
+            !in_array($value['type'] ?? null, ['url', 'email', 'tel', 'sms'], true)) {
+            return false;
+        }
+
+        foreach (array_diff_key($value, ['value' => true, 'type' => true]) as $key => $attribute) {
+            if ($key === 'download' && is_bool($attribute)) {
+                continue;
+            }
+            if (!in_array($key, ['label', 'urlSuffix', 'target', 'title', 'class', 'id', 'rel', 'ariaLabel', 'filename'], true) ||
+                !is_string($attribute)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function layoutFields(ElementInterface $content): array

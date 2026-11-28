@@ -1,6 +1,6 @@
 # Olive Menus release notes
 
-## Unreleased
+## 5.3.0 - 2026-11-28
 
 ### Added
 
@@ -14,7 +14,12 @@
 
 ### Fixed
 
-- Open duplicated menus and older menu items in the editor when optional link fields are empty.
+- Open duplicated menus and older menu items when optional link fields are empty.
+- Submit Copy to site from the Craft menu and copy a consistent snapshot of the source.
+- Keep site variants editable after deleting their source. Repair older disconnected variants on sync.
+- Prevent an older field form from overwriting a more recent save.
+- Preserve native URLs and date time zones during transfer. Report incompatible fields before import and keep exported files within the supported transfer limits.
+- Enable menu builder actions once the editor is ready.
 
 ## 5.2.0 - 2026-11-28
 

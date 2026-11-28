@@ -16,10 +16,17 @@ final class MenuTransferController extends MenuAdminController
     public function actionExport(int $menuId): Response
     {
         $menu = $this->editableMenu($menuId);
+        try {
+            $document = (new PortableMenuService())->export($menu);
+        } catch (InvalidArgumentException $exception) {
+            $this->setFailFlash($exception->getMessage());
+            $site = $this->editableSite($menu->site_id);
+            return $this->redirect(UrlHelper::cpUrl('olivemenus/' . $site->handle));
+        }
 
         $this->response->getHeaders()->set('Cache-Control', 'private, no-store');
         return $this->response->sendContentAsFile(
-            (new PortableMenuService())->export($menu),
+            $document,
             $menu->handle . '.olive-menu.json',
             ['mimeType' => 'application/json'],
         );

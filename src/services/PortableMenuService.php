@@ -42,13 +42,19 @@ final class PortableMenuService
         $rows = [];
         $this->_exportNodes((int)$menu->id, Olivemenus::$plugin->olivemenuItems->getMenuItems($menu->id, recoverDetached: true), 0, $rows, $warnings);
 
-        return Json::encode([
+        $json = Json::encode([
             'format' => 'olive-menus',
             'version' => 1,
             'menu' => ['name' => $menu->name, 'handle' => $menu->handle, 'fields' => $menuFields['values']],
             'items' => $rows,
             'warnings' => array_values(array_unique($warnings)),
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        if (strlen($json) > self::MAX_BYTES) {
+            throw new InvalidArgumentException(Craft::t('olivemenus', 'This menu exceeds the 1 MB JSON transfer limit.'));
+        }
+
+        return $json;
     }
 
     public function review(string $json, int $siteId): array
@@ -85,7 +91,7 @@ final class PortableMenuService
             is_array($fileWarnings) ? $fileWarnings : [],
             static fn (mixed $warning): bool => is_string($warning) && mb_strlen($warning) <= 255,
         )), 0, 30);
-        $menuFields = $this->_fieldValues($document['menu'], FieldLayoutsService::MENU, $warnings);
+        $menuFields = $this->_fieldValues($document['menu'], FieldLayoutsService::MENU, $siteId, $warnings);
         $depths = [0 => 0];
         foreach ($document['items'] as $index => $node) {
             if (!is_array($node) || !is_int($node['key'] ?? null) || $node['key'] < 1 ||
@@ -118,6 +124,7 @@ final class PortableMenuService
                 $model->$attribute = $value;
             }
 
+            $this->_validateReferences($node, $index + 1);
             $this->_resolveReferences($model, $node, $siteId, $warnings);
             if (!$model->validate() || ($model->custom_url !== '' &&
                 Olivemenus::$plugin->olivemenus->getSafeLinkUrl($model->custom_url) === '')) {
@@ -125,7 +132,7 @@ final class PortableMenuService
             }
 
             $depths[$node['key']] = $depths[$node['parent']] + 1;
-            $fields = $this->_fieldValues($node, FieldLayoutsService::NODE, $warnings);
+            $fields = $this->_fieldValues($node, FieldLayoutsService::NODE, $siteId, $warnings);
             $rows[] = ['key' => $node['key'], 'parent' => $node['parent'], 'model' => $model, 'fields' => $fields];
         }
 
@@ -171,24 +178,35 @@ final class PortableMenuService
         return $menuId;
     }
 
-    private function _fieldValues(array $source, string $scope, array &$warnings): array
+    private function _fieldValues(array $source, string $scope, int $siteId, array &$warnings): array
     {
         $input = $source['fields'] ?? [];
         if (!is_array($input)) {
             throw new InvalidArgumentException(Craft::t('olivemenus', 'The exported custom field values are invalid.'));
         }
-        $review = (new FieldContentService())->reviewPortableValues($scope, $input);
+        $review = (new FieldContentService())->reviewPortableValues($scope, $input, $siteId);
         array_push($warnings, ...$review['warnings']);
         return $review['values'];
     }
 
-    private function _exportNodes(int $menuId, array $nodes, int $parent, array &$rows, array &$warnings): void
+    private function _exportNodes(int $menuId, array $nodes, int $parent, array &$rows, array &$warnings, int $depth = 1): void
     {
         $elements = Craft::$app->getElements();
         $sections = Craft::$app->getEntries();
         $sites = Craft::$app->getSites();
         $fields = new FieldContentService();
         foreach ($nodes as $item) {
+            if ($depth > self::MAX_DEPTH) {
+                throw new InvalidArgumentException(Craft::t('olivemenus', 'The JSON transfer limit is {count} nested levels.', [
+                    'count' => self::MAX_DEPTH,
+                ]));
+            }
+            if (count($rows) >= self::MAX_NODES) {
+                throw new InvalidArgumentException(Craft::t('olivemenus', 'The JSON transfer limit is {count} items.', [
+                    'count' => self::MAX_NODES,
+                ]));
+            }
+
             $key = (int)$item['id'];
             $section = empty($item['source_section_uid']) ? null : $sections->getSectionByUid($item['source_section_uid']);
             $targetSite = null;
@@ -212,14 +230,50 @@ final class PortableMenuService
                 'section' => $section ? ['uid' => $section->uid, 'handle' => $section->handle] : null,
             ];
 
-            $this->_exportNodes($menuId, $item['children'] ?? [], $key, $rows, $warnings);
+            $this->_exportNodes($menuId, $item['children'] ?? [], $key, $rows, $warnings, $depth + 1);
         }
+    }
+
+    private function _validateReferences(array $node, int $number): void
+    {
+        $element = $node['element'] ?? null;
+        if ($element !== null && !$this->_isUid($element)) {
+            throw new InvalidArgumentException(Craft::t('olivemenus', 'Item {number} has an invalid linked element reference.', ['number' => $number]));
+        }
+        if (!$this->_isNamedReference($node['site'] ?? null)) {
+            throw new InvalidArgumentException(Craft::t('olivemenus', 'Item {number} has an invalid destination site reference.', ['number' => $number]));
+        }
+        if (!$this->_isNamedReference($node['section'] ?? null)) {
+            throw new InvalidArgumentException(Craft::t('olivemenus', 'Item {number} has an invalid entry section reference.', ['number' => $number]));
+        }
+    }
+
+    private function _isNamedReference(mixed $reference): bool
+    {
+        if ($reference === null) {
+            return true;
+        }
+        if (!is_array($reference)) {
+            return false;
+        }
+
+        $uid = $reference['uid'] ?? null;
+        $handle = $reference['handle'] ?? null;
+
+        return ($uid !== null || $handle !== null) &&
+            ($uid === null || $this->_isUid($uid)) &&
+            ($handle === null || (is_string($handle) && trim($handle) !== '' && mb_strlen($handle) <= 255));
+    }
+
+    private function _isUid(mixed $value): bool
+    {
+        return is_string($value) && preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/i', $value) === 1;
     }
 
     private function _resolveReferences(OlivemenusItemsModel $item, array $node, int $siteId, array &$warnings): void
     {
         $elementUid = $node['element'] ?? null;
-        if (is_string($elementUid) && strlen($elementUid) === 36 && $item->kind === OlivemenusItemsModel::KIND_LINK) {
+        if ($elementUid !== null && $item->kind === OlivemenusItemsModel::KIND_LINK) {
             $element = Craft::$app->getElements()->getElementByUid($elementUid, siteId: $siteId);
             if ($element && isset(Olivemenus::$plugin->olivemenus->getLinkableElementTypes()[$element::class])) {
                 $item->entry_id = (int)$element->id;

@@ -117,11 +117,24 @@ class OlivemenusService extends Component
 
     public function deleteMenuById(int $id): ?int
     {
-        $deleted = Craft::$app->getDb()->transaction(function() use ($id): bool {
-            $record = OlivemenusRecord::findOne($id);
+        $db = Craft::$app->getDb();
+        $deleted = $db->transaction(function() use ($db, $id): bool {
+            $record = OlivemenusRecord::findBySql(
+                'SELECT * FROM {{%olivemenus}} WHERE [[id]] = :id FOR UPDATE',
+                [':id' => $id],
+            )->one();
             if (!$record) {
                 return false;
             }
+
+            if ($record->uid) {
+                $db->createCommand()->update(
+                    OlivemenusRecord::tableName(),
+                    ['source_menu_uid' => null],
+                    ['source_menu_uid' => $record->uid],
+                )->execute();
+            }
+
             (new FieldContentService())->deleteForMenu($id);
             if (!$record->delete()) {
                 throw new \RuntimeException('The menu could not be removed.');

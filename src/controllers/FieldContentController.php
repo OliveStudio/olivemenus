@@ -13,6 +13,7 @@ use olivestudio\olivemenus\services\FieldContentService;
 use olivestudio\olivemenus\services\FieldLayoutsService;
 use olivestudio\olivemenus\services\MenuRevisions;
 use yii\web\BadRequestHttpException;
+use yii\web\ConflictHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
@@ -23,9 +24,15 @@ final class FieldContentController extends MenuAdminController
         $menu = $this->editableMenu($this->positiveId($menuId));
         $item = $this->item($menu, $itemId);
         $this->requireFields($item);
-        $this->requireNoDraft($menu);
 
-        return $this->renderFields($menu, $item, (new FieldContentService())->getEditorContent($menu->id, $itemId));
+        $revisions = new MenuRevisions();
+        [$content, $fieldVersion] = $revisions->withMenuLock($menu, function() use ($menu, $itemId, $revisions): array {
+            $this->requireNoDraft($menu);
+
+            return [(new FieldContentService())->getEditorContent($menu->id, $itemId), $revisions->liveVersion($menu->id)];
+        });
+
+        return $this->renderFields($menu, $item, $content, $fieldVersion);
     }
 
     public function actionSave(): Response
@@ -39,13 +46,22 @@ final class FieldContentController extends MenuAdminController
             throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid field values.'));
         }
 
+        $fieldVersion = $this->request->getRequiredBodyParam('fieldVersion');
+        if (!is_string($fieldVersion) || !preg_match('/^[a-f0-9]{64}$/D', $fieldVersion)) {
+            throw new BadRequestHttpException(Craft::t('olivemenus', 'Invalid field version.'));
+        }
+
         $fields = new FieldContentService();
         $revisions = new MenuRevisions();
-        [$content, $saved] = $revisions->withMenuLock($menu, function() use ($menu, $itemId, $fields, $revisions): array {
+        [$content, $saved] = $revisions->withMenuLock($menu, function() use ($menu, $itemId, $fieldVersion, $fields, $revisions): array {
             $this->requireNoDraft($menu);
+            $before = $revisions->liveSnapshot($menu->id);
+            if (!hash_equals($revisions->snapshotVersion($before), $fieldVersion)) {
+                throw new ConflictHttpException(Craft::t('olivemenus', 'The live menu has changed. Reload and try again.'));
+            }
+
             $content = $fields->getEditorContent($menu->id, $itemId);
             $content->setFieldValuesFromRequest('fields');
-            $before = $revisions->liveSnapshot($menu->id);
             $saved = $fields->saveContent($content, $menu->id, $itemId);
             if ($saved) {
                 $revisions->recordPublication($menu->id, $before, Craft::$app->getUser()->getId());
@@ -55,7 +71,7 @@ final class FieldContentController extends MenuAdminController
         });
         if (!$saved) {
             $this->setFailFlash(Craft::t('olivemenus', 'The field content could not be saved.'));
-            return $this->renderFields($menu, $item, $content);
+            return $this->renderFields($menu, $item, $content, $fieldVersion);
         }
 
         Olivemenus::$plugin->olivemenus->invalidateMenuCache();
@@ -95,8 +111,12 @@ final class FieldContentController extends MenuAdminController
         }
     }
 
-    private function renderFields(OlivemenusModel $menu, ?OlivemenusItemsRecord $item, NavigationFieldContent $content): Response
-    {
+    private function renderFields(
+        OlivemenusModel $menu,
+        ?OlivemenusItemsRecord $item,
+        NavigationFieldContent $content,
+        string $fieldVersion,
+    ): Response {
         $form = $content->getFieldLayout()->createForm($content, false, ['registerDeltas' => true]);
 
         return $this->renderTemplate('olivemenus/_field-content', [
@@ -105,6 +125,7 @@ final class FieldContentController extends MenuAdminController
             'site' => $this->editableSite($menu->site_id),
             'tabs' => $form->getTabMenu(),
             'fieldsHtml' => $form->render(),
+            'fieldVersion' => $fieldVersion,
         ]);
     }
 }

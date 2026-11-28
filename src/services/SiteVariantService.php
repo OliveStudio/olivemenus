@@ -13,6 +13,11 @@ use RuntimeException;
 
 final class SiteVariantService
 {
+    public function getSourceMenu(?string $sourceUid): ?OlivemenusRecord
+    {
+        return $sourceUid ? OlivemenusRecord::findOne(['uid' => $sourceUid]) : null;
+    }
+
     public function variants(OlivemenusModel $menu): array
     {
         return OlivemenusRecord::find()
@@ -23,18 +28,33 @@ final class SiteVariantService
 
     public function sync(OlivemenusModel $menu, Site $targetSite): int
     {
-        if ($menu->source_menu_uid !== null || $menu->site_id === $targetSite->id || !$targetSite->getEnabled()) {
+        if ($menu->site_id === $targetSite->id || !$targetSite->getEnabled()) {
             throw new InvalidArgumentException(Craft::t('olivemenus', 'Choose a different enabled site from the source menu.'));
         }
 
         $db = Craft::$app->getDb();
         $variantId = $db->transaction(function() use ($db, $menu, $targetSite): int {
-            $sourceId = $db->createCommand(
-                'SELECT [[id]] FROM {{%olivemenus}} WHERE [[id]] = :id FOR UPDATE',
-                [':id' => $menu->id],
-            )->queryScalar();
-            if ($sourceId === false) {
+            $source = $db->createCommand(
+                'SELECT [[id]], [[source_menu_uid]] FROM {{%olivemenus}} WHERE [[id]] = :id AND [[site_id]] = :siteId FOR UPDATE',
+                [':id' => $menu->id, ':siteId' => $menu->site_id],
+            )->queryOne();
+            if ($source === false) {
                 throw new InvalidArgumentException(Craft::t('olivemenus', 'The source menu is unavailable.'));
+            }
+
+            $sourceId = (int)$source['id'];
+            $sourceUid = $source['source_menu_uid'];
+            if ($sourceUid !== null) {
+                if ($this->getSourceMenu($sourceUid) !== null) {
+                    throw new InvalidArgumentException(Craft::t('olivemenus', 'Open the source menu to synchronize this variant.'));
+                }
+
+                // Repair references left behind by versions that did not unlink surviving variants.
+                $db->createCommand()->update(
+                    OlivemenusRecord::tableName(),
+                    ['source_menu_uid' => null],
+                    ['id' => $sourceId],
+                )->execute();
             }
 
             $revisions = new MenuRevisions();
