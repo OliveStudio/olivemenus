@@ -277,8 +277,11 @@ final class MenuRevisions
     /** Converts a parent-first draft list into the same tree shape used by the editor. */
     public function itemsForEditor(int $menuId, array $items): array
     {
+        $defaults = (new OlivemenusItemsModel())->getAttributes(self::ITEM_FIELDS);
         $byParent = [];
         foreach ($items as $item) {
+            // Snapshots omit null values. Fill editor fields without changing stored revisions.
+            $item = array_replace($item, $this->_modelValues($item) + $defaults);
             $item['menu_id'] = $menuId;
             $byParent[$item['parent_id']][] = $item;
         }

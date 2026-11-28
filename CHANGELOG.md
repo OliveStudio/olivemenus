@@ -12,6 +12,10 @@
 - Export a menu as JSON and review an import before creating a new menu.
 - Set two, three, or four columns on a group for mega menu layouts. Site templates control the visual styling.
 
+### Fixed
+
+- Open duplicated menus and older menu items in the editor when optional link fields are empty.
+
 ## 5.2.0 - 2026-11-28
 
 ### Added
