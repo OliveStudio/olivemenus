@@ -34,7 +34,18 @@
 {% endblock %}
 
 {% block actionButton %}
-    <a href="{{ url('olivemenus/menu-new/' ~ objSite.handle) }}" class="btn submit add icon">{{ "New menu"|t('olivemenus') }}</a>
+    <div class="buttons">
+        {% if currentUser.admin and craft.app.config.general.allowAdminChanges %}
+            {{ disclosureMenu([{
+                items: [
+                    {label: 'Menu fields'|t('olivemenus'), url: cpUrl('olivemenus/field-layouts/menu')},
+                    {label: 'Node fields'|t('olivemenus'), url: cpUrl('olivemenus/field-layouts/node')},
+                ],
+            }], {buttonLabel: 'Field layouts'|t('olivemenus')}) }}
+        {% endif %}
+        <a href="{{ cpUrl('olivemenus/import/' ~ objSite.id) }}" class="btn">{{ 'Import menu'|t('olivemenus') }}</a>
+        <a href="{{ cpUrl('olivemenus/menu-new/' ~ objSite.handle) }}" class="btn submit add icon">{{ 'New menu'|t('olivemenus') }}</a>
+    </div>
 {% endblock %}
 
 {# The content of the CP Section#}
@@ -82,6 +93,18 @@
                                 buttonAttributes: {class: ['small']},
                             }) }}
                         {% endif %}
+                        {% set menuTools = [
+                            {label: 'Menu content'|t('olivemenus'), url: cpUrl('olivemenus/menu-fields/' ~ menu.id)},
+                            {label: 'Export JSON'|t('olivemenus'), url: cpUrl('olivemenus/export/' ~ menu.id)},
+                        ] %}
+                        {% if showSiteMenu %}
+                            {% set menuTools = menuTools|merge([{label: 'Site variants'|t('olivemenus'), url: cpUrl('olivemenus/site-variants/' ~ menu.id)}]) %}
+                        {% endif %}
+                        {{ disclosureMenu([{items: menuTools}], {
+                            buttonLabel: 'More'|t('olivemenus'),
+                            hiddenLabel: 'More actions for {name}'|t('olivemenus', {name: menu.name}),
+                            buttonAttributes: {class: ['small']},
+                        }) }}
                         <button type="button" class="btn small delete" aria-label="{{ 'Delete {name}'|t('olivemenus', {name: menu.name}) }}">{{ 'Delete'|t('olivemenus') }}</button>
                     </div>
                 </td>

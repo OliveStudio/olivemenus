@@ -34,6 +34,7 @@ final class DuplicateMenuService
         'enabled',
         'use_element_title',
         'hide_when_unavailable',
+        'presentation',
     ];
 
     public function duplicate(OlivemenusModel $source, ?int $targetSiteId = null): int
@@ -108,6 +109,8 @@ final class DuplicateMenuService
             throw new RuntimeException('The duplicate menu could not be saved.');
         }
 
+        $fieldContent = new FieldContentService();
+        $fieldContent->copyValues((int)$source->id, null, (int)$duplicate->id, null);
         $items = OlivemenusItemsRecord::find()
             ->where(['menu_id' => $source->id])
             ->orderBy(['id' => SORT_ASC])
@@ -125,6 +128,7 @@ final class DuplicateMenuService
             }
 
             $copies[$item->id] = $copy;
+            $fieldContent->copyValues((int)$source->id, (int)$item->id, (int)$duplicate->id, (int)$copy->id);
         }
 
         foreach ($items as $item) {

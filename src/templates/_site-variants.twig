@@ -1,0 +1,51 @@
+{% extends "_layouts/cp" %}
+
+{% set title = 'Site variants'|t('olivemenus') %}
+{% set crumbs = [
+    {label: 'Olive Menus'|t('olivemenus'), url: cpUrl('olivemenus/' ~ site.handle)},
+    {label: menu.name, url: cpUrl('olivemenus/menu-items/' ~ menu.id)},
+] %}
+
+{% block content %}
+    {% if menu.source_menu_uid %}
+        <p>{{ 'This menu follows the structure of its source. Edit translated labels and links here.'|t('olivemenus') }}</p>
+        {% if source %}
+            <a class="btn" href="{{ cpUrl('olivemenus/site-variants/' ~ source.id) }}">{{ 'Open source menu'|t('olivemenus') }}</a>
+        {% endif %}
+    {% elseif sites %}
+        <p>{{ 'Create a menu on another site, or copy structure changes from this menu to an existing variant.'|t('olivemenus') }}</p>
+        <details class="field">
+            <summary>{{ 'What synchronizes?'|t('olivemenus') }}</summary>
+            <p>{{ 'New items, nesting and order follow the source. Existing labels, links and extra items on the destination site stay available for local editing.'|t('olivemenus') }}</p>
+        </details>
+        <table class="data fullwidth">
+            <thead><tr><th scope="col">{{ 'Site'|t('olivemenus') }}</th><th scope="col">{{ 'Menu'|t('olivemenus') }}</th><th scope="col">{{ 'Action'|t('olivemenus') }}</th></tr></thead>
+            <tbody>
+            {% for destination in sites %}
+                {% set variant = variants[destination.id] ?? null %}
+                <tr>
+                    <th scope="row">{{ destination.name }}</th>
+                    <td>
+                        {% if variant %}
+                            <a href="{{ cpUrl('olivemenus/menu-items/' ~ variant.id) }}">{{ variant.name }}</a>
+                        {% else %}
+                            <span class="light">{{ 'Available to create'|t('olivemenus') }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post">
+                            {{ csrfInput() }}
+                            {{ actionInput('olivemenus/site-variants/sync') }}
+                            {{ hiddenInput('menuId', menu.id) }}
+                            {{ hiddenInput('siteId', destination.id) }}
+                            <button class="btn" type="submit">{{ (variant ? 'Sync structure' : 'Create variant')|t('olivemenus') }}</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>{{ 'There are no other editable sites.'|t('olivemenus') }}</p>
+    {% endif %}
+{% endblock %}

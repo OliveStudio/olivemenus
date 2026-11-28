@@ -1,0 +1,39 @@
+{% extends "_layouts/cp" %}
+{% import _self as preview %}
+
+{% set title = revisionId ? 'Revision preview'|t('olivemenus') : 'Draft preview'|t('olivemenus') %}
+{% set crumbs = [{label: menu.name, url: cpUrl('olivemenus/menu-items/' ~ menu.id)}] %}
+
+{% macro items(items) %}
+    <ul class="bullets">
+        {% for item in items %}
+            <li>
+                {% if item.url %}
+                    <a href="{{ item.url }}">{{ item.name }}</a>
+                {% else %}
+                    <span>{{ item.name }}</span>
+                {% endif %}
+                {% if item.children is not empty %}
+                    {{ _self.items(item.children) }}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}
+
+{% block actionButton %}
+    {% if revisionId %}
+        <a class="btn" href="{{ cpUrl('olivemenus/menu-history/' ~ menu.id) }}">{{ 'Back to history'|t('olivemenus') }}</a>
+    {% else %}
+        <a class="btn" href="{{ cpUrl('olivemenus/menu-items/' ~ menu.id, {draft: 1}) }}">{{ 'Back to draft'|t('olivemenus') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% set content %}
+    <p class="light">{{ 'This preview reflects the items visible to your account at the current time.'|t('olivemenus') }}</p>
+    {% if items %}
+        {{ preview.items(items) }}
+    {% else %}
+        <p>{{ 'There are no visible items in this version.'|t('olivemenus') }}</p>
+    {% endif %}
+{% endset %}

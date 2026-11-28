@@ -61,7 +61,7 @@ class Olivemenus extends Plugin
      *
      * @var string
      */
-    public string $schemaVersion = '1.1.17';
+    public string $schemaVersion = '1.1.21';
 
     // Public Methods
     // =========================================================================
@@ -85,6 +85,7 @@ class Olivemenus extends Plugin
             'olivemenuItems' => services\OlivemenuItemsService::class,
         ]);
         self::$plugin = $this;
+        services\FieldLayoutsService::register();
 
         // Register our CP routes
         Event::on(
@@ -99,6 +100,14 @@ class Olivemenus extends Plugin
                 $event->rules['olivemenus/menu-edit/<menuId:\d+>'] = 'olivemenus/menu/menu-edit';
                 $event->rules['olivemenus/menu-edit/'] = 'olivemenus/menu';
                 $event->rules['olivemenus/menu-items/<menuId:\d+>'] = 'olivemenus/menu-items/edit';
+                $event->rules['olivemenus/menu-history/<menuId:\d+>'] = 'olivemenus/menu-revisions/history';
+                $event->rules['olivemenus/menu-preview/<menuId:\d+>'] = 'olivemenus/menu-revisions/preview';
+                $event->rules['olivemenus/field-layouts/<scope:menu|node>'] = 'olivemenus/field-layout/edit';
+                $event->rules['olivemenus/menu-fields/<menuId:\d+>'] = 'olivemenus/field-content/edit';
+                $event->rules['olivemenus/node-fields/<menuId:\d+>/<itemId:\d+>'] = 'olivemenus/field-content/edit';
+                $event->rules['olivemenus/import/<siteId:\d+>'] = 'olivemenus/menu-transfer/import';
+                $event->rules['olivemenus/export/<menuId:\d+>'] = 'olivemenus/menu-transfer/export';
+                $event->rules['olivemenus/site-variants/<menuId:\d+>'] = 'olivemenus/site-variants/index';
             }
         );
 

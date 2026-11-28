@@ -117,10 +117,18 @@ class OlivemenusService extends Component
 
     public function deleteMenuById(int $id): ?int
     {
-        $record = OlivemenusRecord::findOne($id);
-
-        // The menu foreign key cascades to its items.
-        if (!$record?->delete()) {
+        $deleted = Craft::$app->getDb()->transaction(function() use ($id): bool {
+            $record = OlivemenusRecord::findOne($id);
+            if (!$record) {
+                return false;
+            }
+            (new FieldContentService())->deleteForMenu($id);
+            if (!$record->delete()) {
+                throw new \RuntimeException('The menu could not be removed.');
+            }
+            return true;
+        });
+        if (!$deleted) {
             return null;
         }
 
@@ -231,13 +239,27 @@ class OlivemenusService extends Component
         return $this->getMenuDataById((int)$menu->id, $siteId);
     }
 
-    public function getMenuDataById(int $menuId, int $siteId, ?callable $filterEntrySource = null): array
-    {
+    public function getMenuDataById(
+        int $menuId,
+        int $siteId,
+        ?callable $filterEntrySource = null,
+        bool $forGraphql = false,
+    ): array {
+        Craft::$app->getElements()->collectCacheTags([MenuQuery::CACHE_TAG]);
         return $this->_enrichMenuItems(
             Olivemenus::$plugin->olivemenuItems->getMenuItems($menuId),
             $siteId,
             $filterEntrySource,
+            $forGraphql,
         );
+    }
+
+    /** Renders an explicitly supplied tree for the authorized control panel preview. */
+    public function getPreviewData(array $items, int $siteId): array
+    {
+        $sections = Olivemenus::$plugin->olivemenuItems->getDynamicSectionOptions($siteId);
+
+        return $this->_enrichMenuItems($items, $siteId, static fn (\craft\models\Section $section): bool => isset($sections[$section->uid]));
     }
 
     /**
@@ -275,6 +297,17 @@ class OlivemenusService extends Component
         ];
     }
 
+    public function getMenuContent(string $handle, ?int $siteId = null, ?int $itemId = null): ?ElementInterface
+    {
+        $siteId ??= Craft::$app->getSites()->getCurrentSite()->id;
+        $menu = $this->getMenuByHandle($handle, $siteId);
+        if (!$menu || ($itemId !== null && $this->_findItemTrail($this->getMenuDataById((int)$menu->id, $siteId), $itemId) === [])) {
+            return null;
+        }
+        Craft::$app->getElements()->collectCacheTags([MenuQuery::CACHE_TAG]);
+        return (new FieldContentService())->getContent((int)$menu->id, $itemId);
+    }
+
     private function _findItemTrail(array $items, int|string|null $itemId = null): array
     {
         foreach ($items as $item) {
@@ -294,13 +327,17 @@ class OlivemenusService extends Component
         return [];
     }
 
-    private function _enrichMenuItems(array $items, int $siteId, ?callable $filterEntrySource): array
-    {
+    private function _enrichMenuItems(
+        array $items,
+        int $siteId,
+        ?callable $filterEntrySource,
+        bool $forGraphql = false,
+    ): array {
         if (empty($items)) {
             return [];
         }
 
-        $items = array_values(array_filter($items, static fn (array $item): bool => (bool)($item['enabled'] ?? true)));
+        $items = MenuItemPresentationFilter::apply($items, $siteId, $forGraphql);
         $elements = $this->getLinkedElements($this->_collectEntryIds($items), $siteId);
         $items = $this->_applyItemEnrichment($items, $elements);
         $this->_appendGroupSources($items, $siteId, $filterEntrySource);
@@ -375,8 +412,7 @@ class OlivemenusService extends Component
             $item['isAncestorActive'] = false;
 
             if (!empty($item['children'])) {
-                $children = array_filter($item['children'], static fn (array $child): bool => (bool)($child['enabled'] ?? true));
-                $item['children'] = $this->_applyItemEnrichment(array_values($children), $elements);
+                $item['children'] = $this->_applyItemEnrichment($item['children'], $elements);
             }
 
             $enriched[] = $item;
@@ -388,6 +424,9 @@ class OlivemenusService extends Component
     private function _appendGroupSources(array &$items, int $siteId, ?callable $filterEntrySource): void
     {
         foreach ($items as &$item) {
+            $manualEntryIds = $item['manualGroupEntryIds'] ?? [];
+            unset($item['manualGroupEntryIds']);
+
             if (!empty($item['children'])) {
                 $this->_appendGroupSources($item['children'], $siteId, $filterEntrySource);
             }
@@ -417,12 +456,6 @@ class OlivemenusService extends Component
                 continue;
             }
 
-            $manualEntryIds = [];
-            foreach ($item['children'] ?? [] as $child) {
-                if (!empty($child['entry_id']) && empty($child['custom_url'])) {
-                    $manualEntryIds[] = (int)$child['entry_id'];
-                }
-            }
             if ($manualEntryIds !== []) {
                 $query->id(['not', ...$manualEntryIds]);
             }
@@ -590,13 +623,16 @@ class OlivemenusService extends Component
 
     private function _getMenuItemHTML(array $menuItem, array $config): string
     {
-        $ulClass = '';
         $menuItemClass = match ($menuItem['kind'] ?? OlivemenusItemsModel::KIND_LINK) {
             OlivemenusItemsModel::KIND_HEADING => 'menu-item menu-item--heading',
             OlivemenusItemsModel::KIND_GROUP => 'menu-item menu-item--group',
             OlivemenusItemsModel::KIND_SITE => 'menu-item menu-item--site',
             default => 'menu-item',
         };
+        $megaMenu = $menuItem['megaMenu'] ?? null;
+        if ($megaMenu !== null) {
+            $menuItemClass .= ' menu-item--mega';
+        }
         $menuClass = $menuItem['class'] ?? '';
         $menuItemClass .= ' ' . ($menuItem['class_parent'] ?? '');
 
@@ -636,16 +672,27 @@ class OlivemenusService extends Component
             $localHTML .= '<span class="' . $menuClassAttr . '"' . $dataAttributes . '>' . $label . '</span>';
         }
 
+        if ($megaMenu !== null) {
+            $localHTML .= '<div class="menu-mega-panel">';
+            if ($megaMenu['description'] !== '') {
+                $localHTML .= '<p class="menu-mega-description">' . Html::encode($megaMenu['description']) . '</p>';
+            }
+        }
+
         if (!empty($menuItem['children'])) {
-            if (isset($config['sub-menu-ul-class'])) {
-                $ulClass = Html::encode($config['sub-menu-ul-class']);
+            $ulClass = $config['sub-menu-ul-class'] ?? '';
+            if ($megaMenu !== null) {
+                $ulClass .= ' menu-mega-columns menu-mega-columns--' . $megaMenu['columns'];
             }
 
-            $localHTML .= '<ul class="' . $ulClass . '">';
+            $localHTML .= '<ul class="' . Html::encode(trim($ulClass)) . '">';
             foreach ($menuItem['children'] as $child) {
                 $localHTML .= $this->_getMenuItemHTML($child, $config);
             }
             $localHTML .= '</ul>';
+        }
+        if ($megaMenu !== null) {
+            $localHTML .= '</div>';
         }
         $localHTML .= '</li>';
 

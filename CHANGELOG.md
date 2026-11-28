@@ -1,5 +1,17 @@
 # Olive Menus release notes
 
+## Unreleased
+
+### Added
+
+- Assign native Craft field layouts to menus and nodes, with field content saved separately for each site.
+- Create linked site variants and sync their structure while keeping localized content.
+- Save a private menu draft, preview it in the control panel, and publish it when ready.
+- Review published revisions and restore an earlier version as a draft.
+- Set node visibility by site, audience, user group, or date and time.
+- Export a menu as JSON and review an import before creating a new menu.
+- Set two, three, or four columns on a group for mega menu layouts. Site templates control the visual styling.
+
 ## 5.2.0 - 2026-11-28
 
 ### Added

@@ -4,6 +4,8 @@ namespace olivestudio\olivemenus\migrations;
 
 use Craft;
 use craft\db\Migration;
+use olivestudio\olivemenus\services\FieldContentService;
+use olivestudio\olivemenus\services\FieldLayoutsService;
 
 /**
  * m180517_142452_olivemenus_table migration.
@@ -37,6 +39,8 @@ class Install extends Migration
         if ($this->createTables()) {
             $this->createIndexes();
             $this->addForeignKeys();
+            m261128_030000_olivemenus_fields::installFieldContentTable($this);
+            MenuRevisionTables::create($this);
             // Refresh the db schema caches
             Craft::$app->db->schema->refresh();
             $this->insertDefaultData();
@@ -58,6 +62,10 @@ class Install extends Migration
     public function safeDown(): bool
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
+        (new FieldContentService())->deleteAll();
+        FieldLayoutsService::remove();
+        MenuRevisionTables::drop($this);
+        $this->dropTableIfExists(FieldContentService::TABLE);
         $this->removeTables();
 
         return true;
@@ -86,6 +94,7 @@ class Install extends Migration
                     'name' => $this->string(255)->notNull()->defaultValue(''),
                     'handle' => $this->string(255)->notNull()->defaultValue(''),
                     'site_id' => $this->integer(11),
+                    'source_menu_uid' => $this->string(36),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
@@ -117,6 +126,8 @@ class Install extends Migration
                     'class_parent' => $this->string(255),
                     'data_json' => $this->string(255),
                     'target' => $this->string(255),
+                    'presentation' => $this->text(),
+                    'source_item_uid' => $this->string(36),
                     'enabled' => $this->boolean()->notNull()->defaultValue(true),
                     'use_element_title' => $this->boolean()->notNull()->defaultValue(false),
                     'hide_when_unavailable' => $this->boolean()->notNull()->defaultValue(false),
@@ -139,6 +150,8 @@ class Install extends Migration
         $table = '{{%olivemenus}}';
         $this->createIndex(null, $table, ['name', 'site_id'], true);
         $this->createIndex(null, $table, ['handle', 'site_id'], true);
+        $this->createIndex(null, $table, ['source_menu_uid', 'site_id'], true);
+        $this->createIndex(null, '{{%olivemenus_items}}', ['menu_id', 'source_item_uid'], true);
     }
 
     /**

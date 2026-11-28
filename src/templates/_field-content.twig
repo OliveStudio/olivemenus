@@ -1,0 +1,24 @@
+{% extends "_layouts/cp" %}
+
+{% set title = item ? item.name : menu.name %}
+{% set fullPageForm = true %}
+{% set crumbs = [
+    { label: 'Olive Menus'|t('olivemenus'), url: cpUrl('olivemenus/' ~ site.handle) },
+    { label: menu.name, url: cpUrl('olivemenus/menu-items/' ~ menu.id) },
+    { label: (item ? 'Node fields' : 'Menu fields')|t('olivemenus') },
+] %}
+
+{% block actionButton %}
+    <button type="submit" class="btn submit">{{ 'Save field content'|t('olivemenus') }}</button>
+{% endblock %}
+
+{% block content %}
+    {{ csrfInput() }}
+    {{ actionInput('olivemenus/field-content/save') }}
+    {{ hiddenInput('menuId', menu.id) }}
+    {% if item %}
+        {{ hiddenInput('itemId', item.id) }}
+    {% endif %}
+    <p>{{ 'Field values apply to {site}. Saving publishes these changes immediately.'|t('olivemenus', {site: site.name}) }}</p>
+    {{ fieldsHtml|raw }}
+{% endblock %}

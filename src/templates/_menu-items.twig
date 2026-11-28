@@ -9,11 +9,61 @@
     },
 ] %}
 
+{% set editorUrl = cpUrl('olivemenus/menu-items/' ~ menu.id) %}
+
 {% block actionButton %}
-    <button type="submit" class="btn submit" form="menu-items-form">{{ 'Save menu'|t('olivemenus') }}</button>
+    <div class="buttons">
+        {% if hasMenuFieldLayout %}
+            <a class="btn" href="{{ cpUrl('olivemenus/menu-fields/' ~ menu.id) }}">{{ 'Menu content'|t('olivemenus') }}</a>
+        {% endif %}
+        <a class="btn" href="{{ cpUrl('olivemenus/menu-history/' ~ menu.id) }}">{{ 'Revision history'|t('olivemenus') }}</a>
+        {% if isDraft %}
+            <a class="btn" href="{{ cpUrl('olivemenus/menu-preview/' ~ menu.id) }}">{{ 'Preview saved draft'|t('olivemenus') }}</a>
+        {% endif %}
+        <button type="submit" class="btn submit" form="menu-items-form">{{ (isDraft ? 'Save draft' : 'Save menu')|t('olivemenus') }}</button>
+    </div>
 {% endblock %}
 
 {% set content %}
+    <div class="pane">
+        {% if isDraft %}
+            <p><strong>{{ 'Draft'|t('olivemenus') }}</strong> {{ 'Changes appear on the website when you publish the saved draft.'|t('olivemenus') }}</p>
+            {% if draft.isStale %}
+                <p class="warning">{{ 'The live menu changed after this draft was created. Compare the draft with the live menu before starting a new draft.'|t('olivemenus') }}</p>
+            {% endif %}
+            <div class="buttons">
+                <a class="btn" href="{{ editorUrl }}">{{ 'View live menu'|t('olivemenus') }}</a>
+                {% if not draft.isStale %}
+                    <form method="post" action="{{ editorUrl }}" aria-label="{{ 'Publish saved draft'|t('olivemenus') }}">
+                        {{ csrfInput() }}
+                        {{ actionInput('olivemenus/menu-revisions/publish') }}
+                        {{ hiddenInput('menuId', menu.id) }}
+                        {{ hiddenInput('draftVersion', draft.version) }}
+                        <button type="submit" class="btn">{{ 'Publish saved draft'|t('olivemenus') }}</button>
+                    </form>
+                {% endif %}
+                <form method="post" action="{{ editorUrl }}" aria-label="{{ 'Discard draft'|t('olivemenus') }}">
+                    {{ csrfInput() }}
+                    {{ actionInput('olivemenus/menu-revisions/discard') }}
+                    {{ hiddenInput('menuId', menu.id) }}
+                    {{ hiddenInput('draftVersion', draft.version) }}
+                    <button type="submit" class="btn">{{ 'Discard draft'|t('olivemenus') }}</button>
+                </form>
+            </div>
+        {% else %}
+            <p><strong>{{ 'Live menu'|t('olivemenus') }}</strong> {{ 'Saving here updates the website immediately.'|t('olivemenus') }}</p>
+            {% if draft %}
+                <a class="btn" href="{{ cpUrl('olivemenus/menu-items/' ~ menu.id, {draft: 1}) }}">{{ 'Open draft'|t('olivemenus') }}</a>
+            {% else %}
+                <form method="post" action="{{ editorUrl }}" aria-label="{{ 'Create draft'|t('olivemenus') }}">
+                    {{ csrfInput() }}
+                    {{ actionInput('olivemenus/menu-revisions/start') }}
+                    {{ hiddenInput('menuId', menu.id) }}
+                    <button type="submit" class="btn">{{ 'Create draft'|t('olivemenus') }}</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
     <div class="olive-menu-editor">
         <aside id="menu-items-sidebar" aria-labelledby="add-menu-items">
             <h2 id="add-menu-items">{{ 'Add menu items'|t('olivemenus') }}</h2>
@@ -80,10 +130,19 @@
                     sourceLimit: 10,
                 } %}
             </template>
+            <template id="item-presentation-template">
+                {% include 'olivemenus/_item-presentation' with {settingsId: 'item-presentation-template', isGroup: true} only %}
+            </template>
             <p class="light">{{ 'Drag items to arrange them, or use the move controls in each item’s settings.'|t('olivemenus') }}</p>
-            <form method="post" accept-charset="UTF-8" id="menu-items-form">
+            <form method="post" action="{{ editorUrl }}" accept-charset="UTF-8" id="menu-items-form" aria-labelledby="menu-structure">
                 {{ csrfInput() }}
-                {{ actionInput('olivemenus/menu-items/save-menu-items') }}
+                {% if isDraft %}
+                    {{ actionInput('olivemenus/menu-items/store-draft') }}
+                    {{ hiddenInput('draft-version', draft.version) }}
+                {% else %}
+                    {{ actionInput('olivemenus/menu-items/save-menu-items') }}
+                    {{ hiddenInput('live-version', liveVersion) }}
+                {% endif %}
                 <input type="hidden" name="menu-id" value="{{ menu.id }}" />
                 <input type="hidden" id="menu-items-deleted" name="menu-items-deleted" value="" />
                 <input type="hidden" id="menu-items-serialized" name="menu-items-serialized" value="" />

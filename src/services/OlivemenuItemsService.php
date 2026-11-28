@@ -16,6 +16,7 @@ use craft\base\Component;
 use craft\elements\Entry;
 
 use craft\web\View;
+use olivestudio\olivemenus\models\MenuItemPresentation;
 use olivestudio\olivemenus\models\OlivemenusItemsModel;
 use olivestudio\olivemenus\Olivemenus;
 use olivestudio\olivemenus\records\OlivemenusItemsRecord;
@@ -68,13 +69,17 @@ class OlivemenuItemsService extends Component
         return new OlivemenusItemsModel($attributes);
     }
 
-    public function saveMenuItem(OlivemenusItemsModel $model): ?int
+    public function saveMenuItem(OlivemenusItemsModel $model, bool $restoreSourceItemUid = false): ?int
     {
         $record = $model->id
             ? OlivemenusItemsRecord::findOne(['id' => $model->id, 'menu_id' => $model->menu_id])
             : new OlivemenusItemsRecord();
         if ($record === null) {
             return null;
+        }
+
+        if ($record->getIsNewRecord() && $model->uid !== '') {
+            $record->uid = $model->uid;
         }
 
         $record->menu_id = $model->menu_id;
@@ -89,10 +94,14 @@ class OlivemenuItemsService extends Component
         $record->source_section_uid = $model->source_section_uid;
         $record->source_sort = $model->source_sort;
         $record->source_limit = $model->source_limit;
+        $record->presentation = $model->presentation;
         $record->class = $model->class;
         $record->class_parent = $model->class_parent;
         $record->data_json = $model->data_json;
         $record->target = $model->target;
+        if ($restoreSourceItemUid || $model->source_item_uid !== null) {
+            $record->source_item_uid = $model->source_item_uid;
+        }
         $record->enabled = $model->enabled;
         $record->use_element_title = $model->use_element_title;
         $record->hide_when_unavailable = $model->hide_when_unavailable;
@@ -112,13 +121,17 @@ class OlivemenuItemsService extends Component
             'id' => $id,
         ]);
 
-        if ($record) {
-            if ($record->delete()) {
-                return 1;
-            };
+        if (!$record) {
+            return 0;
         }
 
-        return 0;
+        return Craft::$app->getDb()->transaction(function() use ($id, $record): int {
+            (new FieldContentService())->deleteForItem($id);
+            if (!$record->delete()) {
+                throw new \RuntimeException('The menu item could not be removed.');
+            }
+            return 1;
+        });
     }
 
     public function deleteItemsByMenuId($record): mixed
@@ -128,7 +141,7 @@ class OlivemenuItemsService extends Component
         ]);
 
         foreach ($records as $record) {
-            $record->delete();
+            $this->deleteMenuItem((int)$record->id);
         }
         return null;
     }
@@ -147,6 +160,7 @@ class OlivemenuItemsService extends Component
             $arrMenuItems[$intKey]['menu_id'] = $objItem->menu_id;
             $arrMenuItems[$intKey]['parent_id'] = $objItem->parent_id;
             $arrMenuItems[$intKey]['item_order'] = $objItem->item_order;
+            $arrMenuItems[$intKey]['source_item_uid'] = $objItem->source_item_uid;
             $arrMenuItems[$intKey]['name'] = $objItem->name;
             $arrMenuItems[$intKey]['entry_id'] = $objItem->entry_id;
             $arrMenuItems[$intKey]['custom_url'] = $objItem->custom_url;
@@ -156,6 +170,7 @@ class OlivemenuItemsService extends Component
             $arrMenuItems[$intKey]['source_section_uid'] = $objItem->source_section_uid;
             $arrMenuItems[$intKey]['source_sort'] = $objItem->source_sort;
             $arrMenuItems[$intKey]['source_limit'] = (int)$objItem->source_limit;
+            $arrMenuItems[$intKey]['presentation'] = $objItem->presentation;
             $arrMenuItems[$intKey]['class'] = $objItem->class;
             $arrMenuItems[$intKey]['class_parent'] = $objItem->class_parent;
             $arrMenuItems[$intKey]['data_json'] = $objItem->data_json;
@@ -169,6 +184,21 @@ class OlivemenuItemsService extends Component
             return $this->_sortMenuItemsByParents($arrMenuItems, $recoverDetached);
         }
         return $arrMenuItems;
+    }
+
+    public function getPresentationForEditor(?string $stored = null): array
+    {
+        return MenuItemPresentation::forEditor($stored);
+    }
+
+    public function getPresentationGroupOptions(): array
+    {
+        return MenuItemPresentation::groupOptions();
+    }
+
+    public function getPresentationSiteOptions(): array
+    {
+        return MenuItemPresentation::siteOptions();
     }
 
     public function getSiteLinkOptions(): array
@@ -198,20 +228,19 @@ class OlivemenuItemsService extends Component
         return $options;
     }
 
-    public function getMenuItemsAdminMarkup(int $menuId, ?int $siteId = null): string
-    {
-        $items = $this->getMenuItems($menuId, recoverDetached: true);
+    public function getMenuItemsAdminMarkup(
+        int $menuId,
+        ?int $siteId = null,
+        ?array $items = null,
+        bool $allowFieldContent = false,
+    ): string {
+        $items ??= $this->getMenuItems($menuId, recoverDetached: true);
         if (!$items) {
             return '';
         }
 
         $siteId ??= Craft::$app->getSites()->getCurrentSite()->id;
-        $elementIds = OlivemenusItemsRecord::find()
-            ->select(['entry_id'])
-            ->where(['menu_id' => $menuId])
-            ->andWhere(['>', 'entry_id', 0])
-            ->distinct()
-            ->column();
+        $elementIds = array_values(array_unique($this->_getItemEntryIds($items)));
         $menus = Olivemenus::$plugin->olivemenus;
         $links = [];
         foreach ($menus->getLinkedElements($elementIds, $siteId) as $id => $element) {
@@ -228,9 +257,26 @@ class OlivemenuItemsService extends Component
                 'elements' => $links,
                 'siteLinkOptions' => $this->getSiteLinkOptions(),
                 'dynamicSectionOptions' => $this->getDynamicSectionOptions($siteId),
+                'menuId' => $menuId,
+                'showNodeContent' => $allowFieldContent && FieldLayoutsService::hasLayout(FieldLayoutsService::NODE),
             ],
             View::TEMPLATE_MODE_CP,
         );
+    }
+
+    private function _getItemEntryIds(array $items): array
+    {
+        $ids = [];
+        foreach ($items as $item) {
+            if (!empty($item['entry_id'])) {
+                $ids[] = (int)$item['entry_id'];
+            }
+            if (!empty($item['children'])) {
+                array_push($ids, ...$this->_getItemEntryIds($item['children']));
+            }
+        }
+
+        return $ids;
     }
 
     private function _getSections(int $siteId): array

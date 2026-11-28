@@ -103,7 +103,11 @@ class OlivemenusItemsModel extends Model
 
     public string $source_sort = 'newest';
 
+    public ?string $source_item_uid = null;
+
     public int $source_limit = self::DEFAULT_SOURCE_LIMIT;
+
+    public ?string $presentation = null;
 
     /**
      * Class attribute
@@ -165,6 +169,7 @@ class OlivemenusItemsModel extends Model
             [['target_site_uid', 'source_section_uid'], 'string', 'max' => 36],
             ['source_sort', 'in', 'range' => self::SOURCE_SORTS, 'strict' => true, 'skipOnEmpty' => false],
             ['source_limit', 'integer', 'min' => 1, 'max' => self::MAX_SOURCE_LIMIT],
+            ['presentation', 'string'],
             ['target_site_uid', 'required', 'when' => static fn (self $item): bool => $item->kind === self::KIND_SITE],
             [
                 'url_suffix',

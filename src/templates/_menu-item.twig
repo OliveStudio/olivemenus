@@ -1,8 +1,8 @@
 {% import _self as menuItems %}
 
-{{ menuItems.render(items, elements, siteLinkOptions, dynamicSectionOptions) }}
+{{ menuItems.render(items, elements, siteLinkOptions, dynamicSectionOptions, menuId, showNodeContent) }}
 
-{% macro render(items, elements, siteLinkOptions, dynamicSectionOptions) %}
+{% macro render(items, elements, siteLinkOptions, dynamicSectionOptions, menuId, showNodeContent) %}
     {% import _self as menuItems %}
     {% import "_includes/forms" as forms %}
     {% for item in items %}
@@ -110,6 +110,11 @@
                             name: 'item-enabled',
                             checked: item.enabled,
                         }) }}
+                        {% include "olivemenus/_item-presentation" with {
+                            settingsId: settingsId,
+                            storedPresentation: item.presentation ?? null,
+                            isGroup: kind == 'group',
+                        } only %}
                         {% if isLink %}
                             {{ forms.selectField({
                                 label: 'Open link in'|t('olivemenus'),
@@ -145,11 +150,19 @@
                             value: item.data_json,
                             maxlength: 255,
                         }) }}
+                        {% if showNodeContent %}
+                            <div class="field">
+                                <a class="btn small" href="{{ cpUrl('olivemenus/node-fields/' ~ menuId ~ '/' ~ item.id) }}"
+                                    aria-label="{{ 'Node content for {name}'|t('olivemenus', {name: item.name}) }}">
+                                    {{ 'Node content'|t('olivemenus') }}
+                                </a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             {% if item.children ?? [] %}
-                <ol>{{ menuItems.render(item.children, elements, siteLinkOptions, dynamicSectionOptions) }}</ol>
+                <ol>{{ menuItems.render(item.children, elements, siteLinkOptions, dynamicSectionOptions, menuId, showNodeContent) }}</ol>
             {% endif %}
         </li>
     {% endfor %}

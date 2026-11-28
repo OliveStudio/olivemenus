@@ -88,7 +88,7 @@ final class MenuQuery
             'name' => $menu->name,
             'handle' => $menu->handle,
             'site' => $site->handle,
-            'items' => $menus->getMenuDataById($menu->id, $site->id, self::filterEntrySource(...)),
+            'items' => $menus->getMenuDataById($menu->id, $site->id, self::filterEntrySource(...), forGraphql: true),
         ];
     }
 
@@ -146,6 +146,7 @@ final class MenuQuery
                     'resolve' => static fn (array $item): ?string => $item['url'] === '' ? null : $item['url'],
                 ],
                 'kind' => Type::nonNull(Type::string()),
+                'megaMenu' => self::megaMenuType(),
                 'isDynamic' => [
                     'type' => Type::nonNull(Type::boolean()),
                     'resolve' => static fn (array $item): bool => $item['isDynamic'] ?? false,
@@ -176,6 +177,17 @@ final class MenuQuery
                     'resolve' => static fn (array $item): array => $item['children'] ?? [],
                 ],
             ], 'OliveMenuItem'),
+        ]));
+    }
+
+    private static function megaMenuType(): ObjectType
+    {
+        return GqlEntityRegistry::getOrCreate('OliveMegaMenu', static fn (): ObjectType => new ObjectType([
+            'name' => 'OliveMegaMenu',
+            'fields' => [
+                'columns' => Type::nonNull(Type::int()),
+                'description' => Type::nonNull(Type::string()),
+            ],
         ]));
     }
 

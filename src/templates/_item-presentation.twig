@@ -1,0 +1,101 @@
+{% import '_includes/forms' as forms %}
+
+{% set itemService = craft.app.plugins.getPlugin('olivemenus').olivemenuItems %}
+{% set settings = itemService.getPresentationForEditor(storedPresentation ?? null) %}
+{% set groupOptions = itemService.getPresentationGroupOptions() %}
+{% set siteOptions = itemService.getPresentationSiteOptions() %}
+{% set audiences = {
+    everyone: 'Everyone'|t('olivemenus'),
+    guests: 'Guests only'|t('olivemenus'),
+    'signed-in': 'Signed-in users'|t('olivemenus'),
+} %}
+{% if groupOptions or settings.audience == 'groups' %}
+    {% set audiences = audiences|merge({groups: 'Selected user groups'|t('olivemenus')}) %}
+{% endif %}
+{% if settings.audience == 'invalid' %}
+    {% set audiences = audiences|merge({invalid: 'Invalid visibility configuration'|t('olivemenus')}) %}
+{% endif %}
+{% for uid in settings.groupUids %}
+    {% if groupOptions[uid] is not defined %}
+        {% set groupOptions = groupOptions|merge({(uid): 'Unavailable user group'|t('olivemenus')}) %}
+    {% endif %}
+{% endfor %}
+{% for uid in settings.siteUids %}
+    {% if siteOptions[uid] is not defined %}
+        {% set siteOptions = siteOptions|merge({(uid): 'Unavailable site'|t('olivemenus')}) %}
+    {% endif %}
+{% endfor %}
+
+<fieldset class="field">
+    <legend class="h4">{{ 'Visibility'|t('olivemenus') }}</legend>
+    {{ forms.selectField({
+        label: 'Visible to'|t('olivemenus'),
+        id: settingsId ~ '-audience',
+        name: 'presentation-audience',
+        options: audiences,
+        value: settings.audience,
+    }) }}
+    {% if groupOptions %}
+        {{ forms.checkboxSelectField({
+            label: 'User groups'|t('olivemenus'),
+            instructions: 'Applies when Visible to is set to Selected user groups. Members of any selected group can see the item.'|t('olivemenus'),
+            id: settingsId ~ '-groups',
+            name: 'presentation-groups',
+            options: groupOptions|map((label, uid) => {label, value: uid, id: settingsId ~ '-group-' ~ uid}),
+            values: settings.groupUids,
+        }) }}
+    {% endif %}
+    {% if siteOptions|length > 1 or settings.siteUids %}
+        {{ forms.checkboxSelectField({
+            label: 'Show on these sites'|t('olivemenus'),
+            instructions: 'Leave all sites unchecked to show the item on any site that uses this menu.'|t('olivemenus'),
+            id: settingsId ~ '-sites',
+            name: 'presentation-sites',
+            options: siteOptions|map((label, uid) => {label, value: uid, id: settingsId ~ '-site-' ~ uid}),
+            values: settings.siteUids,
+        }) }}
+    {% endif %}
+    <p class="light">{{ 'Times use the Craft system time zone ({timeZone}).'|t('olivemenus', {timeZone: craft.app.timeZone}) }}</p>
+    {{ forms.textField({
+        label: 'Show from'|t('olivemenus'),
+        id: settingsId ~ '-starts',
+        name: 'presentation-starts',
+        type: 'datetime-local',
+        value: settings.startsAt,
+    }) }}
+    {{ forms.textField({
+        label: 'Hide after'|t('olivemenus'),
+        id: settingsId ~ '-ends',
+        name: 'presentation-ends',
+        type: 'datetime-local',
+        value: settings.endsAt,
+    }) }}
+</fieldset>
+
+{% if isGroup %}
+    <fieldset class="field" data-olivemenus-mega>
+        <legend class="h4">{{ 'Mega menu'|t('olivemenus') }}</legend>
+        {{ forms.selectField({
+            label: 'Layout'|t('olivemenus'),
+            instructions: 'Choose a column layout for this group. The site template controls how columns are displayed.'|t('olivemenus'),
+            id: settingsId ~ '-columns',
+            name: 'presentation-columns',
+            options: [
+                {value: 0, label: 'Standard list'|t('olivemenus')},
+                {value: 2, label: '2 columns'|t('olivemenus')},
+                {value: 3, label: '3 columns'|t('olivemenus')},
+                {value: 4, label: '4 columns'|t('olivemenus')},
+            ],
+            value: settings.columns,
+        }) }}
+        {{ forms.textareaField({
+            label: 'Description'|t('olivemenus'),
+            instructions: 'Optional text above the links in a column layout.'|t('olivemenus'),
+            id: settingsId ~ '-description',
+            name: 'presentation-description',
+            value: settings.description,
+            rows: 2,
+            maxlength: 255,
+        }) }}
+    </fieldset>
+{% endif %}

@@ -98,6 +98,20 @@ $(() => {
         return item.children('div').find('[name="' + name + '"]');
     }
 
+    function cloneItemFields(templateId, settingsId) {
+        const fields = document.getElementById(templateId).content.cloneNode(true);
+        const attributes = ['id', 'for', 'aria-controls', 'aria-describedby', 'aria-labelledby'];
+        for (const field of fields.querySelectorAll(attributes.map(name => '[' + name + ']').join(','))) {
+            for (const name of attributes) {
+                const value = field.getAttribute(name);
+                if (value) {
+                    field.setAttribute(name, value.replaceAll(templateId, settingsId));
+                }
+            }
+        }
+        return fields;
+    }
+
     function updateItemStatus(item) {
         const checkbox = findField(item, 'item-enabled').filter(':checkbox');
         item.children('div').find('.menu-item-status').toggle(checkbox.is(':not(:checked)'));
@@ -154,17 +168,7 @@ $(() => {
             fields.append(inputField('URL', 'custom-url', customUrl));
         }
         if (kind === 'group') {
-            const sourceTemplate = document.getElementById('group-source-template');
-            const sourceFields = sourceTemplate.content.cloneNode(true);
-            for (const field of sourceFields.querySelectorAll('[id], [for], [aria-describedby]')) {
-                for (const name of ['id', 'for', 'aria-describedby']) {
-                    const value = field.getAttribute(name);
-                    if (value) {
-                        field.setAttribute(name, value.replaceAll('group-source-template', settingsId));
-                    }
-                }
-            }
-            fields.append(sourceFields);
+            fields.append(cloneItemFields('group-source-template', settingsId));
         }
         if (kind !== 'link') {
             heading.find('.menu-title').after($('<span>', {
@@ -174,6 +178,11 @@ $(() => {
         }
 
         fields.append(checkboxField('Show on the website', 'item-enabled', true));
+        const presentationFields = cloneItemFields('item-presentation-template', settingsId);
+        if (kind !== 'group') {
+            presentationFields.querySelector('[data-olivemenus-mega]').remove();
+        }
+        fields.append(presentationFields);
         if (entryId !== null) {
             const suffix = inputField('URL suffix', 'url-suffix');
             const instructionsId = 'menu-field-' + nextId + '-suffix-help';
@@ -386,6 +395,15 @@ $(() => {
                 'source-section-uid': findField(item, 'source-section-uid').val(),
                 'source-sort': findField(item, 'source-sort').val(),
                 'source-limit': findField(item, 'source-limit').val(),
+                presentation: {
+                    audience: findField(item, 'presentation-audience').val(),
+                    groupUids: findField(item, 'presentation-groups[]').filter(':checked').map((_, input) => input.value).get(),
+                    siteUids: findField(item, 'presentation-sites[]').filter(':checked').map((_, input) => input.value).get(),
+                    startsAt: findField(item, 'presentation-starts').val(),
+                    endsAt: findField(item, 'presentation-ends').val(),
+                    columns: findField(item, 'presentation-columns').val() ?? 0,
+                    description: findField(item, 'presentation-description').val(),
+                },
                 'entry-id': findField(item, 'item-entry-id').val() || undefined,
                 'custom-url': findField(item, 'custom-url').val(),
                 'url-suffix': findField(item, 'url-suffix').val(),
@@ -410,10 +428,16 @@ $(() => {
         const saveButton = $('[form="menu-items-form"][type="submit"]');
         saveButton.prop('disabled', true);
 
-        Craft.sendActionRequest('POST', 'olivemenus/menu-items/save-menu-items', {
+        const action = menuForm.find('[name="action"]').val();
+        const draftVersion = menuForm.find('[name="draft-version"]').val();
+        const liveVersion = menuForm.find('[name="live-version"]').val();
+
+        Craft.sendActionRequest('POST', action, {
             headers: {Accept: 'application/json'},
             data: {
                 'menu-id': menuForm.find('[name="menu-id"]').val(),
+                'draft-version': draftVersion,
+                'live-version': liveVersion,
                 'menu-items-deleted': Array.from(deletedIds).join(','),
                 'menu-items-serialized': JSON.stringify(items),
             },

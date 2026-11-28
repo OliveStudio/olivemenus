@@ -1,0 +1,32 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = (scope == 'menu' ? 'Menu field layout' : 'Node field layout')|t('olivemenus') %}
+{% set fullPageForm = true %}
+{% set crumbs = [
+    { label: 'Olive Menus'|t('olivemenus'), url: cpUrl('olivemenus') },
+] %}
+
+{% block sidebar %}
+    <nav aria-label="{{ 'Field layouts'|t('olivemenus') }}">
+        <ul>
+            <li><a class="{{ scope == 'menu' ? 'sel' }}" href="{{ cpUrl('olivemenus/field-layouts/menu') }}">
+                {{ 'Menu fields'|t('olivemenus') }}
+            </a></li>
+            <li><a class="{{ scope == 'node' ? 'sel' }}" href="{{ cpUrl('olivemenus/field-layouts/node') }}">
+                {{ 'Node fields'|t('olivemenus') }}
+            </a></li>
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    {{ csrfInput() }}
+    {{ actionInput('olivemenus/field-layout/save') }}
+    {{ hiddenInput('scope', scope) }}
+    <p>{{ 'This layout applies to all menus. Field values are edited separately for each site.'|t('olivemenus') }}</p>
+    {{ forms.fieldLayoutDesigner({
+        fieldLayout: fieldLayout,
+        errors: fieldLayout.getErrors('tabs'),
+    }) }}
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = 'Import menu'|t('olivemenus') %}
+{% set crumbs = [{label: 'Olive Menus'|t('olivemenus'), url: cpUrl('olivemenus/' ~ site.handle)}] %}
+
+{% block content %}
+    {% if error %}
+        <p class="error" role="alert">{{ error }}</p>
+    {% endif %}
+    {% if plan %}
+        <h2>{{ 'Review import'|t('olivemenus') }}</h2>
+        <p>{{ '{count, plural, one{# item} other{# items}} will be imported on {site}.'|t('olivemenus', {count: plan.items|length, site: site.name}) }}</p>
+        {% if plan.warnings %}
+            <div class="warning">
+                <h3>{{ 'Review these warnings'|t('olivemenus') }}</h3>
+                <ul class="bullets">
+                    {% for warning in plan.warnings %}<li>{{ warning }}</li>{% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <form method="post">
+            {{ csrfInput() }}
+            {{ actionInput('olivemenus/menu-transfer/create-menu') }}
+            {{ hiddenInput('siteId', site.id) }}
+            {{ hiddenInput('document', document) }}
+            {{ forms.textField({label: 'Menu name'|t('olivemenus'), id: 'import-menu-name', name: 'name', value: plan.name, required: true, maxlength: 255}) }}
+            {{ forms.textField({
+                label: 'Handle'|t('olivemenus'),
+                instructions: 'Use a unique handle on this site.'|t('olivemenus'),
+                id: 'import-menu-handle',
+                name: 'handle',
+                value: plan.handle,
+                required: true,
+                maxlength: 255,
+            }) }}
+            <div class="buttons">
+                <button class="btn submit" type="submit">{{ 'Create menu'|t('olivemenus') }}</button>
+                <a class="btn" href="{{ cpUrl('olivemenus/import/' ~ site.id) }}">{{ 'Choose another file'|t('olivemenus') }}</a>
+            </div>
+        </form>
+    {% else %}
+        <p>{{ 'Import an Olive Menus JSON export as a new menu on {site}.'|t('olivemenus', {site: site.name}) }}</p>
+        <form method="post" enctype="multipart/form-data">
+            {{ csrfInput() }}
+            {{ forms.fileField({
+                label: 'Menu JSON file'|t('olivemenus'),
+                instructions: 'Choose an Olive Menus export of 1 MB or less.'|t('olivemenus'),
+                id: 'menu-json',
+                name: 'menuJson',
+                required: true,
+                inputAttributes: {accept: '.json,application/json', required: true},
+            }) }}
+            <button class="btn submit" type="submit">{{ 'Review import'|t('olivemenus') }}</button>
+        </form>
+    {% endif %}
+{% endblock %}

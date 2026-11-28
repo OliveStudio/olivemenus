@@ -69,6 +69,8 @@ class OlivemenusModel extends Model
     */
     public int $site_id = 0;
 
+    public ?string $source_menu_uid = null;
+
     // Public Methods
     // =========================================================================
 

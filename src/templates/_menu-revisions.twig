@@ -1,0 +1,60 @@
+{% extends "_layouts/cp" %}
+
+{% set title = 'Revision history'|t('olivemenus') %}
+{% set crumbs = [{label: menu.name, url: cpUrl('olivemenus/menu-items/' ~ menu.id)}] %}
+
+{% block actionButton %}
+    <a class="btn" href="{{ cpUrl('olivemenus/menu-items/' ~ menu.id) }}">{{ 'Back to menu'|t('olivemenus') }}</a>
+{% endblock %}
+
+{% set content %}
+    {% if hasDraft %}
+        <p>{{ 'Publish or discard the existing draft before restoring a revision.'|t('olivemenus') }}</p>
+        <p><a href="{{ cpUrl('olivemenus/menu-items/' ~ menu.id, {draft: 1}) }}">{{ 'Open draft'|t('olivemenus') }}</a></p>
+    {% endif %}
+    {% if history %}
+        <table class="data fullwidth collapsible">
+            <caption class="visually-hidden">{{ 'Published menu revisions'|t('olivemenus') }}</caption>
+            <thead>
+                <tr>
+                    <th scope="col">{{ 'Revision'|t('olivemenus') }}</th>
+                    <th scope="col">{{ 'Date'|t('olivemenus') }}</th>
+                    <th scope="col">{{ 'Account'|t('olivemenus') }}</th>
+                    <th scope="col">{{ 'Actions'|t('olivemenus') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for revision in history %}
+                    {% set revisionLabel = 'Revision {id}'|t('olivemenus', {id: revision.id}) %}
+                    {% set actor = actors[revision.actor_id] ?? null %}
+                    <tr>
+                        <th scope="row">{{ revisionLabel }}</th>
+                        <td data-title="{{ 'Date'|t('olivemenus') }}">
+                            <time datetime="{{ revision.published_at|date('c') }}">{{ revision.published_at|datetime('short') }}</time>
+                        </td>
+                        <td data-title="{{ 'Account'|t('olivemenus') }}">{{ actor ? actor.friendlyName : '—' }}</td>
+                        <td data-title="{{ 'Actions'|t('olivemenus') }}">
+                            <div class="flex gap-xs">
+                                <a class="btn small" href="{{ cpUrl('olivemenus/menu-preview/' ~ menu.id, {revision: revision.id}) }}" aria-label="{{ 'Preview revision {id}'|t('olivemenus', {id: revision.id}) }}">{{ 'Preview'|t('olivemenus') }}</a>
+                                {% if not hasDraft %}
+                                    <form method="post" action="{{ cpUrl('olivemenus/menu-history/' ~ menu.id) }}" aria-label="{{ 'Restore revision {id} as a draft'|t('olivemenus', {id: revision.id}) }}">
+                                        {{ csrfInput() }}
+                                        {{ actionInput('olivemenus/menu-revisions/restore') }}
+                                        {{ hiddenInput('menuId', menu.id) }}
+                                        {{ hiddenInput('revisionId', revision.id) }}
+                                        <button type="submit" class="btn small">{{ 'Restore as draft'|t('olivemenus') }}</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if olderThan %}
+            <p><a class="btn" href="{{ cpUrl('olivemenus/menu-history/' ~ menu.id, {before: olderThan}) }}">{{ 'Older revisions'|t('olivemenus') }}</a></p>
+        {% endif %}
+    {% else %}
+        <p>{{ 'No published revisions yet.'|t('olivemenus') }}</p>
+    {% endif %}
+{% endset %}
